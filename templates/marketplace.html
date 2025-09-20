@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5><i class="fas fa-filter text-primary"></i> Filters</h5>
+                
+                <form method="GET" action="{{ url_for('marketplace') }}">
+                    <div class="mb-3">
+                        <label for="search" class="form-label">Search</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ search }}" placeholder="Search products...">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">All Categories</option>
+                            <option value="pottery" {% if category == 'pottery' %}selected{% endif %}>Pottery</option>
+                            <option value="jewelry" {% if category == 'jewelry' %}selected{% endif %}>Jewelry</option>
+                            <option value="textiles" {% if category == 'textiles' %}selected{% endif %}>Textiles</option>
+                            <option value="woodwork" {% if category == 'woodwork' %}selected{% endif %}>Woodwork</option>
+                            <option value="art" {% if category == 'art' %}selected{% endif %}>Art</option>
+                            <option value="other" {% if category == 'other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Apply Filters
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-store text-primary"></i> Marketplace</h2>
+            {% if current_user.role == 'artisan' %}
+            <button class="btn btn-primary" onclick="showAddProduct()">
+                <i class="fas fa-plus"></i> Add Product
+            </button>
+            {% endif %}
+        </div>
+        
+        {% if products.items %}
+        <div class="row">
+            {% for product in products.items %}
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card h-100">
+                    <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.title }}" style="height: 200px; object-fit: cover;">
+                    <div class="card-body d-flex flex-column">
+                        <h6 class="card-title">{{ product.title }}</h6>
+                        <p class="card-text small text-muted flex-grow-1">{{ product.description[:100] }}{% if product.description|length > 100 %}...{% endif %}</p>
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="h5 text-primary mb-0">${{ "%.2f"|format(product.price) }}</span>
+                                <small class="text-muted">by {{ product.artisan.username }}</small>
+                            </div>
+                            {% if current_user.role == 'buyer' %}
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-primary w-100" onclick="addToCart({{ product.id }})">
+                                    <i class="fas fa-shopping-cart"></i> Add to Cart
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary w-100 mt-1" onclick="addToWishlist({{ product.id }})">
+                                    <i class="fas fa-heart"></i> Wishlist
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        <div class="d-flex justify-content-center mt-4">
+            {% if products.has_prev %}
+                <a href="{{ url_for('marketplace', page=products.prev_num, category=category, search=search) }}" class="btn btn-outline-primary me-2">Previous</a>
+            {% endif %}
+            {% if products.has_next %}
+                <a href="{{ url_for('marketplace', page=products.next_num, category=category, search=search) }}" class="btn btn-outline-primary">Next</a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+            <h4>No products found</h4>
+            <p class="text-muted">
+                {% if search or category %}
+                    Try adjusting your search filters.
+                {% else %}
+                    Be the first to add a product to the marketplace!
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function addToCart(productId) {
+    fetch(`/api/cart/add/${productId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+        } else {
+            showAlert(data.error || 'Failed to add to cart', 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('An error occurred', 'danger');
+    });
+}
+
+function addToWishlist(productId) {
+    fetch(`/api/wishlist/add/${productId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+        } else {
+            showAlert(data.error || 'Failed to add to wishlist', 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('An error occurred', 'danger');
+    });
+}
+
+function showAddProduct() {
+    showAlert('Add product functionality coming soon!', 'info');
+}
+</script>
+{% endblock %}
