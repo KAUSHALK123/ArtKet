@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row min-vh-100 align-items-center">
+    <div class="col-md-6 offset-md-3 text-center">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <h1 class="display-4 mb-4">
+                    <i class="fas fa-palette text-primary"></i> ArtConnect
+                </h1>
+                <p class="lead mb-4">
+                    Discover, connect, and support local artisans in your community. 
+                    An AI-powered social marketplace where creativity meets commerce.
+                </p>
+                
+                <div class="d-grid gap-2 col-6 mx-auto">
+                    <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-user-plus"></i> Sign Up
+                    </a>
+                </div>
+                
+                <div class="row mt-5">
+                    <div class="col-md-4">
+                        <i class="fas fa-users fa-2x text-primary mb-3"></i>
+                        <h5>Connect</h5>
+                        <p class="small">Follow your favorite artisans and discover new talent</p>
+                    </div>
+                    <div class="col-md-4">
+                        <i class="fas fa-robot fa-2x text-primary mb-3"></i>
+                        <h5>AI-Powered</h5>
+                        <p class="small">Smart content generation and personalized recommendations</p>
+                    </div>
+                    <div class="col-md-4">
+                        <i class="fas fa-shopping-bag fa-2x text-primary mb-3"></i>
+                        <h5>Marketplace</h5>
+                        <p class="small">Buy unique, handcrafted items directly from artisans</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="text-center mb-4">
+            <h2>
+                <i class="fas fa-home text-primary"></i> Your Feed
+            </h2>
+            <p class="text-muted">Discover amazing artwork from talented artisans</p>
+        </div>
+        
+        {% if current_user.role == 'artisan' %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5><i class="fas fa-plus-circle text-primary"></i> Share Your Art</h5>
+                <p class="text-muted">Upload a new piece to share with your followers</p>
+                <button class="btn btn-primary" onclick="showCreatePost()">
+                    <i class="fas fa-camera"></i> Create Post
+                </button>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if posts.items %}
+            {% for post in posts.items %}
+            <div class="card mb-4 post-card">
+                <div class="card-header bg-white border-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle me-3">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ post.author.username }}</h6>
+                            <small class="text-muted">{{ post.created_at.strftime('%b %d, %Y') }}</small>
+                        </div>
+                        {% if current_user.role == 'buyer' %}
+                        <div class="ms-auto">
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-user-plus"></i> Follow
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="post-image">
+                    <img src="{{ post.image_url }}" class="card-img" alt="Post image">
+                </div>
+                
+                <div class="card-body">
+                    <div class="d-flex mb-3">
+                        <button class="btn btn-link p-0 me-3 text-decoration-none" onclick="toggleLike({{ post.id }})">
+                            <i class="far fa-heart fa-lg"></i>
+                        </button>
+                        <button class="btn btn-link p-0 me-3 text-decoration-none" onclick="showComments({{ post.id }})">
+                            <i class="far fa-comment fa-lg"></i>
+                        </button>
+                        <button class="btn btn-link p-0 text-decoration-none">
+                            <i class="far fa-share-square fa-lg"></i>
+                        </button>
+                    </div>
+                    
+                    {% if post.caption %}
+                    <p class="mb-2">
+                        <strong>{{ post.author.username }}</strong> {{ post.caption }}
+                    </p>
+                    {% endif %}
+                    
+                    {% if post.hashtags %}
+                    <p class="text-primary mb-2">{{ post.hashtags }}</p>
+                    {% endif %}
+                    
+                    <small class="text-muted">View all comments</small>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <!-- Pagination -->
+            <div class="d-flex justify-content-center">
+                {% if posts.has_prev %}
+                    <a href="{{ url_for('feed', page=posts.prev_num) }}" class="btn btn-outline-primary me-2">Previous</a>
+                {% endif %}
+                {% if posts.has_next %}
+                    <a href="{{ url_for('feed', page=posts.next_num) }}" class="btn btn-outline-primary">Next</a>
+                {% endif %}
+            </div %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-images fa-3x text-muted mb-3"></i>
+                <h4>No posts yet</h4>
+                <p class="text-muted">Start following artisans to see their amazing work here!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

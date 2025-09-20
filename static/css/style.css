@@ -1,0 +1,115 @@
+/* ArtConnect Custom Styles */
+
+body {
+    background-color: #fafafa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+}
+
+/* Post Cards */
+.post-card {
+    max-width: 600px;
+    margin: 0 auto;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+}
+
+.post-image img {
+    width: 100%;
+    height: auto;
+    max-height: 600px;
+    object-fit: cover;
+}
+
+/* Avatar Styles */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background-color: #f0f0f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-placeholder {
+    width: 120px;
+    height: 120px;
+    background-color: #f8f9fa;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+/* Profile Styles */
+.profile-avatar {
+    position: relative;
+}
+
+.profile-avatar img {
+    object-fit: cover;
+}
+
+/* Button Styles */
+.btn-link {
+    color: #262626;
+}
+
+.btn-link:hover {
+    color: #000;
+    text-decoration: none;
+}
+
+/* Card Hover Effects */
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+/* Instagram-style feed layout */
+.post-card .card-header {
+    padding: 16px;
+}
+
+.post-card .card-body {
+    padding: 16px;
+    padding-top: 12px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 0;
+        padding-right: 0;
+    }
+    
+    .post-card {
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        margin-bottom: 0;
+    }
+}
+
+/* Custom scrollbar for better UX */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
