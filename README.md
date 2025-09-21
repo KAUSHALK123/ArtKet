@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ArtConnect 🎨
 
 A social marketplace platform connecting artisans with art enthusiasts, powered by AI for content generation and recommendations.
@@ -90,3 +91,7 @@ Give a ⭐️ if you like this project!
 ---
 
 Made with ❤️ by [Your Name]
+=======
+# ArtKet
+An app for atisans to connect with each other and explore different art culture in different region
+>>>>>>> 79423b1f16165ded2b108b46175ea8b08e7e3631
