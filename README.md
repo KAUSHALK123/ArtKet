@@ -1,6 +1,8 @@
 
 /////////////// ArtConnect ///////////////////
 
+LIVE LINK----> "https://artket.onrender.com"
+
 A social marketplace platform connecting artisans with art enthusiasts, powered by AI for content generation and recommendations.
 
 --> Features
