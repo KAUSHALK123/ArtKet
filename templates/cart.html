@@ -1,94 +1,155 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artket - Shopping Cart</title>
+    
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts for an artistic feel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Applying the custom fonts and background */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-image: url('https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=2071&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .font-display {
+            font-family: 'Playfair Display', serif;
+        }
+         /* A subtle animation for cards to fade in */
+         .card-animate {
+            animation: fadeIn 0.5s ease-in-out forwards;
+            opacity: 0;
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-stone-100">
 
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <h2 class="mb-4">
-            <i class="fas fa-shopping-cart text-primary"></i> Your Cart
-        </h2>
-        
-        {% if cart_items %}
-        <div class="card">
-            <div class="card-body">
-                {% for item in cart_items %}
-                <div class="row align-items-center border-bottom py-3">
-                    <div class="col-md-2">
-                        <img src="{{ item.product.image_url }}" class="img-fluid rounded" alt="{{ item.product.title }}">
-                    </div>
-                    <div class="col-md-4">
-                        <h6>{{ item.product.title }}</h6>
-                        <small class="text-muted">by {{ item.product.artisan.username }}</small>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="input-group input-group-sm">
-                            <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity({{ item.id }}, -1)">-</button>
-                            <input type="number" class="form-control text-center" value="{{ item.quantity }}" readonly>
-                            <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity({{ item.id }}, 1)">+</button>
-                        </div>
-                    </div>
-                    <div class="col-md-2 text-center">
-                        <strong>${{ "%.2f"|format(item.product.price * item.quantity) }}</strong>
-                    </div>
-                    <div class="col-md-2 text-center">
-                        <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart({{ item.id }})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-                {% endfor %}
+    <!-- Frosted Glass Navigation Bar -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-sm shadow-md">
+        <div class="max-w-5xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <a href="{{ url_for('index') }}" class="font-display text-3xl text-stone-800">
+                   Artket
+                </a>
                 
-                <div class="row mt-3">
-                    <div class="col-md-8"></div>
-                    <div class="col-md-4">
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <h5>Order Summary</h5>
-                                <div class="d-flex justify-content-between">
-                                    <span>Subtotal:</span>
-                                    <strong>${{ "%.2f"|format(total) }}</strong>
-                                </div>
-                                <hr>
-                                <div class="d-flex justify-content-between">
-                                    <span>Tax:</span>
-                                    <span>${{ "%.2f"|format(total * 0.08) }}</span>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <strong>Total:</strong>
-                                    <strong>${{ "%.2f"|format(total * 1.08) }}</strong>
-                                </div>
-                                <button class="btn btn-primary w-100 mt-3" onclick="proceedToCheckout()">
-                                    <i class="fas fa-credit-card"></i> Proceed to Checkout
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-6 text-stone-600">
+                    <a href="{{ url_for('feed') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-home mr-1"></i> Home</a>
+                    <a href="{{ url_for('marketplace') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-store mr-1"></i> Marketplace</a>
+                    <a href="{{ url_for('discover') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-map mr-1"></i> Discover</a>
+                    <a href="{{ url_for('profile', username=current_user.username) }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-user mr-1"></i> Profile</a>
+                    <a href="{{ url_for('view_cart') }}" class="hover:text-amber-600 transition-colors text-amber-600"><i class="fas fa-shopping-cart mr-1"></i> Cart</a>
+                    <a href="{{ url_for('logout') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-sign-out-alt mr-1"></i> Logout</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button class="text-stone-600 hover:text-amber-600">
+                        <i class="fas fa-bars fa-lg"></i>
+                    </button>
                 </div>
             </div>
         </div>
-        {% else %}
-        <div class="text-center py-5">
-            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-            <h4>Your cart is empty</h4>
-            <p class="text-muted">Start adding some amazing products from local artisans!</p>
-            <a href="{{ url_for('marketplace') }}" class="btn btn-primary">
-                <i class="fas fa-store"></i> Browse Marketplace
-            </a>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="min-h-screen bg-black/30 pt-8 pb-12">
+        <div class="max-w-3xl mx-auto px-4">
+
+            <!-- Page Header -->
+            <div class="text-center mb-8 card-animate">
+                <h1 class="font-display text-5xl text-white">Your Shopping Cart</h1>
+                <p class="text-white/80 mt-2">Review the beautiful items you've selected.</p>
+            </div>
+            
+            <!-- Cart Items Container -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 sm:p-6 space-y-4 card-animate" style="animation-delay: 0.2s;">
+                
+                <!-- Cart Item 1 -->
+                <div class="flex flex-col sm:flex-row items-center gap-4 border-b border-stone-300 pb-4">
+                    <img src="https://images.unsplash.com/photo-1578926375326-8c638d015b6a?q=80&w=1974&auto=format&fit=crop" alt="Artwork" class="w-32 h-32 object-cover rounded-lg shadow-md">
+                    <div class="flex-grow text-center sm:text-left">
+                        <h3 class="font-semibold text-lg text-stone-800">"Ocean's Whisper" Canvas</h3>
+                        <p class="text-sm text-stone-500">by Elena Artistry</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="w-8 h-8 bg-stone-200 rounded-full hover:bg-stone-300 transition-colors">-</button>
+                        <span class="font-bold w-8 text-center">1</span>
+                        <button class="w-8 h-8 bg-stone-200 rounded-full hover:bg-stone-300 transition-colors">+</button>
+                    </div>
+                    <p class="font-bold text-lg text-stone-800 w-20 text-center sm:text-right">$150.00</p>
+                    <button class="text-stone-500 hover:text-red-500 transition-colors"><i class="fas fa-trash"></i></button>
+                </div>
+
+                <!-- Cart Item 2 -->
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <img src="https://images.unsplash.com/photo-1579965342575-5fab2a4d6825?q=80&w=1935&auto=format&fit=crop" alt="Artwork" class="w-32 h-32 object-cover rounded-lg shadow-md">
+                    <div class="flex-grow text-center sm:text-left">
+                        <h3 class="font-semibold text-lg text-stone-800">Handmade Ceramic Mug Set</h3>
+                        <p class="text-sm text-stone-500">by Potter's Touch</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="w-8 h-8 bg-stone-200 rounded-full hover:bg-stone-300 transition-colors">-</button>
+                        <span class="font-bold w-8 text-center">1</span>
+                        <button class="w-8 h-8 bg-stone-200 rounded-full hover:bg-stone-300 transition-colors">+</button>
+                    </div>
+                    <p class="font-bold text-lg text-stone-800 w-20 text-center sm:text-right">$45.00</p>
+                    <button class="text-stone-500 hover:text-red-500 transition-colors"><i class="fas fa-trash"></i></button>
+                </div>
+
+            </div>
+
+            <!-- Order Summary -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 mt-6 card-animate" style="animation-delay: 0.4s;">
+                <h2 class="font-display text-3xl text-stone-800 border-b border-stone-300 pb-3 mb-4">Order Summary</h2>
+                <div class="space-y-2 text-stone-600">
+                    <div class="flex justify-between">
+                        <p>Subtotal</p>
+                        <p class="font-semibold text-stone-800">$195.00</p>
+                    </div>
+                    <div class="flex justify-between">
+                        <p>Estimated Tax (8%)</p>
+                        <p class="font-semibold text-stone-800">$15.60</p>
+                    </div>
+                    <div class="flex justify-between font-bold text-xl text-stone-900 border-t border-stone-300 pt-3 mt-3">
+                        <p>Total</p>
+                        <p>$210.60</p>
+                    </div>
+                </div>
+                <button class="w-full mt-6 bg-stone-700 text-white font-bold py-3 px-5 rounded-lg shadow-md hover:bg-stone-800 transition-all duration-300 transform hover:scale-105">
+                    <i class="fas fa-credit-card mr-2"></i> Proceed to Checkout
+                </button>
+            </div>
+            
+             <!-- Empty Cart Message (Example) -->
+            <div class="text-center py-16 card-animate hidden">
+                <i class="fas fa-shopping-cart fa-4x text-white/50 mb-4"></i>
+                <h4 class="text-white font-semibold text-2xl font-display">Your cart is empty</h4>
+                <p class="text-white/70 mt-2 mb-4">Fill it with amazing creations from local artisans!</p>
+                <a href="#" class="bg-amber-500 text-stone-800 font-bold py-2 px-6 rounded-lg shadow-md hover:bg-amber-600 transition-colors">
+                    Browse Marketplace
+                </a>
+            </div>
+
         </div>
-        {% endif %}
-    </div>
-</div>
+    </main>
 
-<script>
-function updateQuantity(itemId, change) {
-    showAlert('Quantity update functionality coming soon!', 'info');
-}
-
-function removeFromCart(itemId) {
-    showAlert('Remove from cart functionality coming soon!', 'info');
-}
-
-function proceedToCheckout() {
-    showAlert('Checkout functionality coming soon! Payment integration will be added in the next phase.', 'info');
-}
-</script>
-{% endblock %}
+</body>
+</html>

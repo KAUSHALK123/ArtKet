@@ -1,46 +1,124 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artket - AI-Powered Social Marketplace</title>
+    
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts for an artistic feel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Applying the custom fonts */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            /* The background image is applied here */
+            background-image: url('https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=2071&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
 
-{% block content %}
-<div class="row min-vh-100 align-items-center">
-    <div class="col-md-6 offset-md-3 text-center">
-        <div class="card shadow-lg border-0">
-            <div class="card-body p-5">
-                <h1 class="display-4 mb-4">
-                    <i class="fas fa-palette text-primary"></i> ArtConnect
-                </h1>
-                <p class="lead mb-4">
-                    Discover, connect, and support local artisans in your community. 
-                    An AI-powered social marketplace where creativity meets commerce.
-                </p>
-                
-                <div class="d-grid gap-2 col-6 mx-auto">
-                    <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </a>
-                    <a href="{{ url_for('register') }}" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-user-plus"></i> Sign Up
-                    </a>
+        .font-display {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        /* A subtle animation for the card to fade in */
+        .card-animate {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .doodle-bg {
+            background-image: url('doodle.jpg');
+        }
+    </style>
+</head>
+<body class="bg-gray-200">
+
+    <!-- Main container that fills the screen -->
+    <div class="min-h-screen flex items-center justify-center p-4 bg-black bg-opacity-40">
+        
+        <!-- The main content card -->
+        <div class="w-full max-w-4xl bg-white bg-opacity-80 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden card-animate">
+            <div class="grid md:grid-cols-5">
+
+                <!-- Left side with creative flourish -->
+                <div class="hidden md:flex md:col-span-2 bg-stone-800 p-8 text-white flex-col justify-center items-center">
+                    <i class="fas fa-paint-brush text-6xl text-amber-300"></i>
+                    <h2 class="font-display text-4xl mt-4">Welcome to Artket</h2>
+                    <div class="w-20 h-1 bg-amber-300 my-4 rounded-full"></div>
+                    <p class="text-center text-stone-300">
+                        Your canvas for connection.
+                    </p>
                 </div>
-                
-                <div class="row mt-5">
-                    <div class="col-md-4">
-                        <i class="fas fa-users fa-2x text-primary mb-3"></i>
-                        <h5>Connect</h5>
-                        <p class="small">Follow your favorite artisans and discover new talent</p>
-                    </div>
-                    <div class="col-md-4">
-                        <i class="fas fa-robot fa-2x text-primary mb-3"></i>
-                        <h5>AI-Powered</h5>
-                        <p class="small">Smart content generation and personalized recommendations</p>
-                    </div>
-                    <div class="col-md-4">
-                        <i class="fas fa-shopping-bag fa-2x text-primary mb-3"></i>
-                        <h5>Marketplace</h5>
-                        <p class="small">Buy unique, handcrafted items directly from artisans</p>
+
+                <!-- Right side with welcome info -->
+                <div class="md:col-span-3 p-8 md:p-12 relative overflow-hidden">
+                    <!-- Doodle background with low opacity -->
+                    <div class="absolute inset-0 bg-center bg-contain opacity-10 doodle-bg"></div>
+                    
+                    <!-- Content container -->
+                    <div class="relative z-10">
+                        <div class="text-center">
+                            <h1 class="font-display text-5xl mb-4 text-stone-800">
+                               Artket
+                            </h1>
+                            <p class="text-stone-600 mb-6">
+                                Discover, connect, and support local artisans in your community. An AI-powered social marketplace where creativity meets commerce.
+                            </p>
+                        </div>
+                        
+                        <!-- Login and Sign Up Buttons -->
+                        <div class="space-y-4 max-w-sm mx-auto mb-6">
+                            <a href="{{ url_for('login') }}" class="w-full flex items-center justify-center gap-3 bg-stone-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-stone-800 transition-all duration-300 transform hover:scale-105">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                            <a href="{{ url_for('register') }}" class="w-full flex items-center justify-center gap-3 bg-white text-stone-700 font-bold py-3 px-4 rounded-lg shadow-md border border-stone-200 hover:bg-stone-100 transition-all duration-300 transform hover:scale-105">
+                                <i class="fas fa-user-plus"></i> Sign Up
+                            </a>
+                        </div>
+                        
+                        <!-- Feature Icons -->
+                        <div class="flex justify-around mt-10 text-center text-stone-700">
+                            <div class="w-1/3 px-2">
+                                <i class="fas fa-users text-3xl text-stone-600 mb-3"></i>
+                                <h5 class="font-bold">Connect</h5>
+                                <p class="text-xs text-stone-500">Follow your favorite artisans</p>
+                            </div>
+                            <div class="w-1/3 px-2">
+                                <i class="fas fa-wand-magic-sparkles text-3xl text-stone-600 mb-3"></i>
+                                <h5 class="font-bold">AI-Powered</h5>
+                                <p class="text-xs text-stone-500">Personalized recommendations</p>
+                            </div>
+                            <div class="w-1/3 px-2">
+                                <i class="fas fa-store text-3xl text-stone-600 mb-3"></i>
+                                <h5 class="font-bold">Marketplace</h5>
+                                <p class="text-xs text-stone-500">Buy unique, handcrafted items</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>

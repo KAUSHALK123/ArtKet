@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 import os
 import json
+import uuid
 from dotenv import load_dotenv
 from ai_service import generate_caption_and_hashtags, generate_product_description, analyze_image_for_content
 
@@ -50,6 +51,26 @@ class User(UserMixin, db.Model):
     followers = db.relationship('Follow', foreign_keys='Follow.followed_id', backref='followed', lazy='dynamic')
     cart_items = db.relationship('CartItem', backref='user', lazy='dynamic')
     wishlist_items = db.relationship('WishlistItem', backref='user', lazy='dynamic')
+    
+    # Helper methods for following
+    def follow(self, user):
+        if not self.is_following(user):
+            follow = Follow(follower_id=self.id, followed_id=user.id)
+            db.session.add(follow)
+    
+    def unfollow(self, user):
+        follow = self.following.filter_by(followed_id=user.id).first()
+        if follow:
+            db.session.delete(follow)
+    
+    def is_following(self, user):
+        return self.following.filter_by(followed_id=user.id).first() is not None
+    
+    def followers_count(self):
+        return self.followers.count()
+    
+    def following_count(self):
+        return self.following.count()
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -63,6 +84,16 @@ class Post(db.Model):
     # Relationships
     likes = db.relationship('Like', backref='post', lazy='dynamic', cascade='all, delete-orphan')
     comments = db.relationship('Comment', backref='post', lazy='dynamic', cascade='all, delete-orphan')
+    
+    # Helper methods
+    def likes_count(self):
+        return self.likes.count()
+    
+    def comments_count(self):
+        return self.comments.count()
+    
+    def is_liked_by(self, user):
+        return self.likes.filter_by(user_id=user.id).first() is not None
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -122,6 +153,10 @@ def load_user(user_id):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/discover')
+def discover():
+    return render_template('discover.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -207,11 +242,37 @@ def create_post():
     if current_user.role != 'artisan':
         return jsonify({'error': 'Only artisans can create posts'}), 403
     
-    data = request.get_json()
-    image_url = data.get('image_url')
-    caption = data.get('caption', '')
-    hashtags = data.get('hashtags', '')
-    story = data.get('story', '')
+    # Handle both JSON and form data
+    if request.content_type and 'application/json' in request.content_type:
+        data = request.get_json()
+        image_url = data.get('image_url')
+        caption = data.get('caption', '')
+        hashtags = data.get('hashtags', '')
+        story = data.get('story', '')
+    else:
+        # Handle form data with file upload
+        caption = request.form.get('caption', '')
+        hashtags = request.form.get('hashtags', '')
+        story = request.form.get('story', '')
+        
+        # For now, use a placeholder image URL
+        # In production, you'd upload the file to a storage service
+        image_file = request.files.get('image')
+        if image_file and image_file.filename:
+            # Save to static/uploads/posts directory
+            upload_dir = os.path.join(app.static_folder, 'uploads', 'posts')
+            os.makedirs(upload_dir, exist_ok=True)
+            
+            # Generate unique filename
+            file_ext = image_file.filename.rsplit('.', 1)[1].lower() if '.' in image_file.filename else 'jpg'
+            filename = str(uuid.uuid4()) + '.' + file_ext
+            filepath = os.path.join(upload_dir, filename)
+            image_file.save(filepath)
+            
+            # Generate URL for the image
+            image_url = url_for('static', filename=f'uploads/posts/{filename}')
+        else:
+            return jsonify({'error': 'Image is required'}), 400
     
     if not image_url:
         return jsonify({'error': 'Image URL is required'}), 400
@@ -229,12 +290,8 @@ def create_post():
     
     return jsonify({
         'success': True,
-        'post': {
-            'id': post.id,
-            'caption': post.caption,
-            'hashtags': post.hashtags,
-            'created_at': post.created_at.isoformat()
-        }
+        'message': 'Post created successfully',
+        'post_id': post.id
     }), 201
 
 @app.route('/api/posts/<int:post_id>/like', methods=['POST'])

@@ -1,22 +1,97 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artket - Marketplace</title>
+    
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts for an artistic feel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Applying the custom fonts and background */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-image: url('https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=2071&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .font-display {
+            font-family: 'Playfair Display', serif;
+        }
+         /* A subtle animation for cards to fade in */
+         .card-animate {
+            animation: fadeIn 0.5s ease-in-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes fadeIn {
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-stone-100">
 
-{% block content %}
-<div class="row">
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body">
-                <h5><i class="fas fa-filter text-primary"></i> Filters</h5>
+    <!-- Frosted Glass Navigation Bar -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-sm shadow-md">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <a href="{{ url_for('index') }}" class="font-display text-3xl text-stone-800">
+                   Artket
+                </a>
                 
-                <form method="GET" action="{{ url_for('marketplace') }}">
-                    <div class="mb-3">
-                        <label for="search" class="form-label">Search</label>
-                        <input type="text" class="form-control" id="search" name="search" 
-                               value="{{ search }}" placeholder="Search products...">
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-6 text-stone-600">
+                    <a href="{{ url_for('feed') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-home mr-1"></i> Home</a>
+                    <a href="{{ url_for('marketplace') }}" class="hover:text-amber-600 transition-colors text-amber-600"><i class="fas fa-store mr-1"></i> Marketplace</a>
+                    <a href="{{ url_for('discover') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-map mr-1"></i> Discover</a>
+                    <a href="{{ url_for('profile', username=current_user.username) }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-user mr-1"></i> Profile</a>
+                    <a href="{{ url_for('view_cart') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-shopping-cart mr-1"></i> Cart</a>
+                    <a href="{{ url_for('logout') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-sign-out-alt mr-1"></i> Logout</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button class="text-stone-600 hover:text-amber-600">
+                        <i class="fas fa-bars fa-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="min-h-screen bg-black/30 pt-8 pb-12">
+        <div class="max-w-6xl mx-auto px-4">
+
+            <!-- Page Header -->
+            <div class="text-center mb-8 card-animate">
+                <h1 class="font-display text-5xl text-white">Explore the Marketplace</h1>
+                <p class="text-white/80 mt-2">Find unique, handcrafted items directly from talented artisans.</p>
+            </div>
+            
+            <!-- Search and Filter Bar -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 mb-8 flex flex-col md:flex-row items-center gap-4 card-animate">
+                <form method="GET" action="{{ url_for('marketplace') }}" class="w-full flex flex-col md:flex-row items-center gap-4">
+                    <div class="relative flex-grow w-full">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-stone-400"></i>
+                        <input type="text" name="search" value="{{ search or '' }}" placeholder="Search for artists or artwork..." class="w-full bg-stone-100 border border-stone-200 rounded-lg py-2 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-amber-500">
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="category" class="form-label">Category</label>
-                        <select class="form-select" id="category" name="category">
+                    <div class="flex items-center gap-4 w-full md:w-auto">
+                        <select name="category" class="bg-stone-100 border border-stone-200 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500">
                             <option value="">All Categories</option>
                             <option value="pottery" {% if category == 'pottery' %}selected{% endif %}>Pottery</option>
                             <option value="jewelry" {% if category == 'jewelry' %}selected{% endif %}>Jewelry</option>
@@ -25,125 +100,97 @@
                             <option value="art" {% if category == 'art' %}selected{% endif %}>Art</option>
                             <option value="other" {% if category == 'other' %}selected{% endif %}>Other</option>
                         </select>
+                        <select name="sort" class="bg-stone-100 border border-stone-200 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            <option value="newest">Sort by: Newest</option>
+                            <option value="price_low">Price: Low to High</option>
+                            <option value="price_high">Price: High to Low</option>
+                        </select>
+                        <button type="submit" class="bg-stone-700 text-white font-bold py-2 px-5 rounded-lg shadow-md hover:bg-stone-800 transition-colors">Search</button>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search"></i> Apply Filters
-                    </button>
                 </form>
             </div>
-        </div>
-    </div>
-    
-    <div class="col-md-9">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="fas fa-store text-primary"></i> Marketplace</h2>
-            {% if current_user.role == 'artisan' %}
-            <button class="btn btn-primary" onclick="showAddProduct()">
-                <i class="fas fa-plus"></i> Add Product
-            </button>
-            {% endif %}
-        </div>
-        
-        {% if products.items %}
-        <div class="row">
-            {% for product in products.items %}
-            <div class="col-md-4 col-lg-3 mb-4">
-                <div class="card h-100">
-                    <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.title }}" style="height: 200px; object-fit: cover;">
-                    <div class="card-body d-flex flex-column">
-                        <h6 class="card-title">{{ product.title }}</h6>
-                        <p class="card-text small text-muted flex-grow-1">{{ product.description[:100] }}{% if product.description|length > 100 %}...{% endif %}</p>
-                        <div class="mt-auto">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="h5 text-primary mb-0">${{ "%.2f"|format(product.price) }}</span>
-                                <small class="text-muted">by {{ product.artisan.username }}</small>
-                            </div>
+
+            <!-- Products Grid -->
+            {% if products.items %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for product in products.items %}
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden card-animate" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+                    <img src="{{ product.image_url }}" alt="{{ product.title }}" class="w-full h-56 object-cover">
+                    <div class="p-4">
+                        <h3 class="font-semibold text-lg text-stone-800 truncate">{{ product.title }}</h3>
+                        <p class="text-sm text-stone-500">by {{ product.artisan.username }}</p>
+                        <p class="text-xs text-stone-400 mt-1">{{ product.category }}</p>
+                        <p class="text-xs text-stone-600 mt-2">{{ product.description[:60] }}{% if product.description|length > 60 %}...{% endif %}</p>
+                        <div class="flex justify-between items-center mt-3">
+                            <p class="font-bold text-xl text-stone-900">${{ "%.2f"|format(product.price) }}</p>
                             {% if current_user.role == 'buyer' %}
-                            <div class="mt-2">
-                                <button class="btn btn-sm btn-primary w-100" onclick="addToCart({{ product.id }})">
-                                    <i class="fas fa-shopping-cart"></i> Add to Cart
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary w-100 mt-1" onclick="addToWishlist({{ product.id }})">
-                                    <i class="fas fa-heart"></i> Wishlist
-                                </button>
-                            </div>
+                            <button onclick="addToCart({{ product.id }})" class="bg-stone-200 text-stone-700 font-bold px-4 py-1 rounded-full hover:bg-stone-300 transition-colors">
+                                <i class="fas fa-shopping-cart mr-2"></i>Add
+                            </button>
+                            {% else %}
+                            <span class="text-xs text-stone-500">Your Product</span>
                             {% endif %}
                         </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
-        
-        <!-- Pagination -->
-        <div class="d-flex justify-content-center mt-4">
-            {% if products.has_prev %}
-                <a href="{{ url_for('marketplace', page=products.prev_num, category=category, search=search) }}" class="btn btn-outline-primary me-2">Previous</a>
-            {% endif %}
-            {% if products.has_next %}
-                <a href="{{ url_for('marketplace', page=products.next_num, category=category, search=search) }}" class="btn btn-outline-primary">Next</a>
-            {% endif %}
-        </div>
-        {% else %}
-        <div class="text-center py-5">
-            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-            <h4>No products found</h4>
-            <p class="text-muted">
-                {% if search or category %}
-                    Try adjusting your search filters.
-                {% else %}
-                    Be the first to add a product to the marketplace!
+            
+            <!-- Pagination -->
+            <div class="flex justify-center mt-8 gap-4">
+                {% if products.has_prev %}
+                    <a href="{{ url_for('marketplace', page=products.prev_num, category=category, search=search) }}" class="bg-white/80 backdrop-blur-sm text-stone-700 font-bold py-2 px-6 rounded-lg shadow-md hover:bg-white transition-colors">Previous</a>
                 {% endif %}
-            </p>
+                {% if products.has_next %}
+                    <a href="{{ url_for('marketplace', page=products.next_num, category=category, search=search) }}" class="bg-white/80 backdrop-blur-sm text-stone-700 font-bold py-2 px-6 rounded-lg shadow-md hover:bg-white transition-colors">Next</a>
+                {% endif %}
+            </div>
+            {% else %}
+            <!-- No Products Message -->
+            <div class="text-center py-16 card-animate">
+                <i class="fas fa-store fa-4x text-white/50 mb-4"></i>
+                <h4 class="text-white font-semibold text-2xl font-display">No products found</h4>
+                <p class="text-white/70 mt-2 mb-4">
+                    {% if search or category %}
+                        Try adjusting your search filters.
+                    {% else %}
+                        Be the first to add a product to the marketplace!
+                    {% endif %}
+                </p>
+                <a href="{{ url_for('marketplace') }}" class="bg-amber-500 text-stone-800 font-bold py-2 px-6 rounded-lg shadow-md hover:bg-amber-600 transition-colors">
+                    View All Products
+                </a>
+            </div>
+            {% endif %}
+
         </div>
-        {% endif %}
-    </div>
-</div>
+    </main>
 
-<script>
-function addToCart(productId) {
-    fetch(`/api/cart/add/${productId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
+    <script>
+        // Add to cart function
+        async function addToCart(productId) {
+            try {
+                const response = await fetch(`/api/cart/add/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message
+                    alert('Product added to cart!');
+                } else {
+                    alert('Error adding to cart: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+                alert('Error adding to cart. Please try again.');
+            }
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showAlert(data.message, 'success');
-        } else {
-            showAlert(data.error || 'Failed to add to cart', 'danger');
-        }
-    })
-    .catch(error => {
-        showAlert('An error occurred', 'danger');
-    });
-}
+    </script>
 
-function addToWishlist(productId) {
-    fetch(`/api/wishlist/add/${productId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showAlert(data.message, 'success');
-        } else {
-            showAlert(data.error || 'Failed to add to wishlist', 'danger');
-        }
-    })
-    .catch(error => {
-        showAlert('An error occurred', 'danger');
-    });
-}
-
-function showAddProduct() {
-    showAlert('Add product functionality coming soon!', 'info');
-}
-</script>
-{% endblock %}
+</body>
+</html>

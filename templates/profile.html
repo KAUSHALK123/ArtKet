@@ -1,154 +1,300 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artket - Profile</title>
+    
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts for an artistic feel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Applying the custom fonts and background */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-image: url("{{ url_for('static', filename='images/doodle-bg.svg') }}");
+            background-size: 300px 300px; /* Adjust size for doodle pattern */
+            background-position: top left;
+            background-attachment: fixed;
+            background-repeat: repeat;
+            background-color: #f8f9fa; /* Fallback color */
+        }
+        .font-display {
+            font-family: 'Playfair Display', serif;
+        }
+         /* A subtle animation for elements to fade in */
+         .fade-in-animate {
+            animation: fadeIn 0.5s ease-in-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes fadeIn {
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+        /* Hover effect for gallery items */
+        .gallery-item .overlay {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .gallery-item:hover .overlay {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-stone-100">
 
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-10">
-        <div class="card mb-4">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3 text-center">
-                        <div class="profile-avatar mb-3">
-                            {% if user.profile_image %}
-                                <img src="{{ user.profile_image }}" class="rounded-circle" width="120" height="120" alt="Profile">
-                            {% else %}
-                                <div class="avatar-placeholder">
-                                    <i class="fas fa-user fa-4x text-muted"></i>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="col-md-9">
-                        <div class="d-flex align-items-center mb-3">
-                            <h2 class="me-3">{{ user.username }}</h2>
-                            {% if user.role == 'artisan' %}
-                                <span class="badge bg-primary">
-                                    <i class="fas fa-palette"></i> Artisan
-                                </span>
-                            {% else %}
-                                <span class="badge bg-success">
-                                    <i class="fas fa-user"></i> Buyer
-                                </span>
-                            {% endif %}
-                            
-                            {% if current_user.id != user.id and current_user.role == 'buyer' %}
-                            <button class="btn btn-primary ms-auto" onclick="toggleFollow({{ user.id }})">
-                                <i class="fas fa-user-plus"></i> Follow
-                            </button>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-4">
-                                <strong>{{ posts|length }}</strong><br>
-                                <small class="text-muted">Posts</small>
-                            </div>
-                            <div class="col-4">
-                                <strong>0</strong><br>
-                                <small class="text-muted">Followers</small>
-                            </div>
-                            <div class="col-4">
-                                <strong>0</strong><br>
-                                <small class="text-muted">Following</small>
-                            </div>
-                        </div>
-                        
-                        {% if user.bio %}
-                        <p>{{ user.bio }}</p>
-                        {% endif %}
-                        
-                        {% if user.region %}
-                        <p><i class="fas fa-map-marker-alt text-muted"></i> {{ user.region }}</p>
-                        {% endif %}
-                        
-                        {% if user.craft_type %}
-                        <p><i class="fas fa-tools text-muted"></i> {{ user.craft_type }}</p>
-                        {% endif %}
-                    </div>
+    <!-- Frosted Glass Navigation Bar -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-sm shadow-md">
+        <div class="max-w-5xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <a href="{{ url_for('index') }}" class="font-display text-3xl text-stone-800">
+                   Artket
+                </a>
+                
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-6 text-stone-600">
+                    <a href="{{ url_for('feed') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-home mr-1"></i> Home</a>
+                    <a href="{{ url_for('marketplace') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-store mr-1"></i> Marketplace</a>
+                    <a href="{{ url_for('discover') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-map mr-1"></i> Discover</a>
+                    <a href="{{ url_for('profile', username=current_user.username) }}" class="hover:text-amber-600 transition-colors text-amber-600"><i class="fas fa-user mr-1"></i> Profile</a>
+                    <a href="{{ url_for('view_cart') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-shopping-cart mr-1"></i> Cart</a>
+                    <a href="{{ url_for('logout') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-sign-out-alt mr-1"></i> Logout</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button class="text-stone-600 hover:text-amber-600">
+                        <i class="fas fa-bars fa-lg"></i>
+                    </button>
                 </div>
             </div>
         </div>
-        
-        <!-- Tabs for Posts and Products -->
-        <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="posts-tab" data-bs-toggle="tab" data-bs-target="#posts" type="button" role="tab">
-                    <i class="fas fa-th"></i> Posts
-                </button>
-            </li>
-            {% if user.role == 'artisan' %}
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab">
-                    <i class="fas fa-store"></i> Products
-                </button>
-            </li>
-            {% endif %}
-        </ul>
-        
-        <div class="tab-content" id="profileTabsContent">
-            <div class="tab-pane fade show active" id="posts" role="tabpanel">
-                {% if posts %}
-                <div class="row">
-                    {% for post in posts %}
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <img src="{{ post.image_url }}" class="card-img-top" alt="Post">
-                            <div class="card-body p-2">
-                                <small class="text-muted">{{ post.created_at.strftime('%b %d') }}</small>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="min-h-screen bg-black/30 pt-8 pb-12">
+        <div class="max-w-4xl mx-auto px-4">
+
+            <!-- Profile Header -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 fade-in-animate">
+                {% if user.profile_image %}
+                    <img src="{{ user.profile_image }}" alt="Profile Picture" class="w-32 h-32 md:w-40 md:h-40 object-cover rounded-full shadow-lg border-4 border-white">
                 {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-images fa-3x text-muted mb-3"></i>
-                    <h4>No posts yet</h4>
-                    <p class="text-muted">
-                        {% if current_user.id == user.id %}
-                            Start sharing your amazing artwork!
+                    <div class="w-32 h-32 md:w-40 md:h-40 bg-stone-300 rounded-full shadow-lg border-4 border-white flex items-center justify-center">
+                        <i class="fas fa-user fa-4x text-stone-500"></i>
+                    </div>
+                {% endif %}
+                <div class="text-center md:text-left">
+                    <h1 class="font-display text-4xl text-stone-800">{{ user.username }}</h1>
+                    <p class="text-amber-700 font-semibold mt-1">@{{ user.username }}</p>
+                    
+                    <!-- Role Badge -->
+                    {% if user.role == 'artisan' %}
+                        <span class="inline-block bg-amber-600 text-white px-3 py-1 rounded-full text-sm font-bold mt-2">
+                            <i class="fas fa-palette mr-1"></i> Artisan
+                        </span>
+                    {% else %}
+                        <span class="inline-block bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold mt-2">
+                            <i class="fas fa-user mr-1"></i> Buyer
+                        </span>
+                    {% endif %}
+                    
+                    <!-- Bio -->
+                    <p class="text-stone-600 mt-2 max-w-md">
+                        {% if user.bio %}
+                            {{ user.bio }}
                         {% else %}
-                            {{ user.username }} hasn't shared any posts yet.
+                            {% if user.role == 'artisan' %}
+                                Artist and creator sharing unique handcrafted pieces.
+                            {% else %}
+                                Art enthusiast and collector.
+                            {% endif %}
                         {% endif %}
                     </p>
+                    
+                    <!-- Location and Craft Type -->
+                    <div class="mt-2 text-stone-500 text-sm">
+                        {% if user.region %}
+                            <p><i class="fas fa-map-marker-alt mr-1"></i> {{ user.region }}</p>
+                        {% endif %}
+                        {% if user.craft_type %}
+                            <p><i class="fas fa-tools mr-1"></i> {{ user.craft_type }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Stats -->
+                    <div class="flex justify-center md:justify-start items-center gap-6 mt-4 text-stone-700">
+                        <div><strong class="block text-xl">{{ posts|length }}</strong> Posts</div>
+                        <div><strong id="followers-count" class="block text-xl">{{ user.followers_count() }}</strong> Followers</div>
+                        <div><strong class="block text-xl">{{ user.following_count() }}</strong> Following</div>
+                    </div>
+                    
+                    <!-- Edit Profile Button (only show for own profile) -->
+                    {% if current_user.id == user.id %}
+                    <button class="mt-4 bg-stone-700 text-white font-bold py-2 px-6 rounded-lg shadow-md hover:bg-stone-800 transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-pen mr-2"></i>Edit Profile
+                    </button>
+                    {% elif current_user.role == 'buyer' and user.role == 'artisan' %}
+                    <button id="follow-btn" onclick="toggleFollow({{ user.id }})" class="mt-4 font-bold py-2 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 {% if current_user.is_following(user) %}bg-green-600 text-white hover:bg-green-700{% else %}bg-amber-600 text-white hover:bg-amber-700{% endif %}">
+                        {% if current_user.is_following(user) %}
+                            <i class="fas fa-user-check mr-2"></i>Following
+                        {% else %}
+                            <i class="fas fa-user-plus mr-2"></i>Follow
+                        {% endif %}
+                    </button>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
             
-            {% if user.role == 'artisan' %}
-            <div class="tab-pane fade" id="products" role="tabpanel">
-                {% if products %}
-                <div class="row">
-                    {% for product in products %}
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <img src="{{ product.image_url }}" class="card-img-top" alt="Product">
-                            <div class="card-body">
-                                <h6 class="card-title">{{ product.title }}</h6>
-                                <p class="card-text text-primary">${{ "%.2f"|format(product.price) }}</p>
-                                <button class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-shopping-cart"></i> Add to Cart
-                                </button>
-                            </div>
+            <!-- Gallery Separator -->
+            <div class="text-center my-8 fade-in-animate" style="animation-delay: 0.2s;">
+                <h2 class="font-display text-3xl text-white tracking-widest">
+                    {% if user.role == 'artisan' and posts %}
+                        GALLERY
+                    {% elif posts %}
+                        MY POSTS
+                    {% else %}
+                        NO POSTS YET
+                    {% endif %}
+                </h2>
+                <div class="w-20 h-px bg-white/50 mx-auto mt-2"></div>
+            </div>
+
+            <!-- Posts Grid -->
+            {% if posts %}
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-4">
+                {% for post in posts %}
+                <div class="relative rounded-lg overflow-hidden shadow-lg group gallery-item fade-in-animate" style="animation-delay: {{ loop.index0 * 0.1 + 0.4 }}s;">
+                    <img src="{{ post.image_url }}" alt="Artwork" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-black/50 flex items-center justify-center overlay">
+                        <div class="text-white text-center">
+                            <span class="font-bold"><i class="fas fa-heart"></i> {{ post.likes_count() }}</span>
+                            <span class="ml-4 font-bold"><i class="fas fa-comment"></i> {{ post.comments_count() }}</span>
+                            <p class="text-xs mt-2">{{ post.created_at.strftime('%b %d, %Y') }}</p>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
-                {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-store fa-3x text-muted mb-3"></i>
-                    <h4>No products yet</h4>
-                    <p class="text-muted">
-                        {% if current_user.id == user.id %}
-                            Start listing your creations for sale!
-                        {% else %}
-                            {{ user.username }} hasn't listed any products yet.
-                        {% endif %}
-                    </p>
-                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- No Posts Message -->
+            <div class="text-center py-16 fade-in-animate" style="animation-delay: 0.4s;">
+                <i class="fas fa-images fa-4x text-white/50 mb-4"></i>
+                <h4 class="text-white font-semibold text-2xl font-display">No posts yet</h4>
+                <p class="text-white/70 mt-2 mb-4">
+                    {% if current_user.id == user.id %}
+                        Start sharing your amazing artwork with the community!
+                    {% else %}
+                        {{ user.username }} hasn't shared any posts yet.
+                    {% endif %}
+                </p>
+                {% if current_user.id == user.id %}
+                <a href="{{ url_for('feed') }}" class="bg-amber-500 text-stone-800 font-bold py-2 px-6 rounded-lg shadow-md hover:bg-amber-600 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Create Your First Post
+                </a>
                 {% endif %}
             </div>
             {% endif %}
+
+            <!-- Products Section (for artisans only) -->
+            {% if user.role == 'artisan' and products %}
+            <div class="text-center my-8 fade-in-animate" style="animation-delay: 0.6s;">
+                <h2 class="font-display text-3xl text-white tracking-widest">PRODUCTS FOR SALE</h2>
+                <div class="w-20 h-px bg-white/50 mx-auto mt-2"></div>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-8">
+                {% for product in products %}
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden fade-in-animate" style="animation-delay: {{ loop.index0 * 0.1 + 0.8 }}s;">
+                    <img src="{{ product.image_url }}" alt="{{ product.title }}" class="w-full h-32 object-cover">
+                    <div class="p-3">
+                        <h4 class="font-semibold text-sm text-stone-800 truncate">{{ product.title }}</h4>
+                        <p class="text-xs text-stone-500">{{ product.category }}</p>
+                        <p class="font-bold text-lg text-stone-900 mt-1">${{ "%.2f"|format(product.price) }}</p>
+                        {% if current_user.role == 'buyer' and current_user.id != user.id %}
+                        <button onclick="addToCart({{ product.id }})" class="w-full mt-2 bg-stone-600 text-white text-xs font-bold py-1 px-2 rounded hover:bg-stone-700 transition-colors">
+                            <i class="fas fa-shopping-cart mr-1"></i>Add to Cart
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
         </div>
-    </div>
-</div>
-{% endblock %}
+    </main>
+
+    <script>
+        // Follow functionality
+        function toggleFollow(userId) {
+            fetch(`/api/follow/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update follow button
+                    const followBtn = document.getElementById('follow-btn');
+                    const followersCount = document.getElementById('followers-count');
+                    
+                    if (data.following) {
+                        followBtn.innerHTML = '<i class="fas fa-user-check mr-2"></i>Following';
+                        followBtn.className = followBtn.className.replace('bg-amber-600 hover:bg-amber-700', 'bg-green-600 hover:bg-green-700');
+                    } else {
+                        followBtn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Follow';
+                        followBtn.className = followBtn.className.replace('bg-green-600 hover:bg-green-700', 'bg-amber-600 hover:bg-amber-700');
+                    }
+                    
+                    // Update follower count
+                    followersCount.textContent = data.follower_count;
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+            });
+        }
+
+        // Add to cart functionality
+        function addToCart(productId) {
+            fetch(`/api/cart/add/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Product added to cart!');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+            });
+        }
+    </script>
+
+</body>
+</html>

@@ -1,8 +1,15 @@
-/* ArtConnect Custom Styles */
+/* Artket Custom Styles */
 
 body {
     background-color: #fafafa;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500&display=swap');
+
+.font-display {
+    font-family: 'Playfair Display', serif;
 }
 
 .navbar-brand {

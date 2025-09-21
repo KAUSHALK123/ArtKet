@@ -1,97 +1,459 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artket - Your Feed</title>
+    
+    <!-- Tailwin        // Toggle like functionality
+        async function toggleLike(postId) {
+            try {
+                const response = await fetch(`/api/posts/${postId}/like`, { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update like button appearance
+                    const likeBtn = document.getElementById(`like-btn-${postId}`);
+                    const likeIcon = likeBtn.querySelector('i');
+                    
+                    if (result.liked) {
+                        likeIcon.className = 'fas fa-heart text-red-500';
+                    } else {
+                        likeIcon.className = 'far fa-heart';
+                    }
+                    
+                    // Update like count
+                    const likeCount = document.getElementById(`like-count-${postId}`);
+                    likeCount.textContent = `${result.like_count} likes`;
+                } else {
+                    alert('Failed to toggle like');
+                }
+            } catch (error) {
+                console.error('Error toggling like:', error);
+                alert('Error liking post');
+            }
+        }rn styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts for an artistic feel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Applying the custom fonts and background */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-image: url('https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=2071&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .font-display {
+            font-family: 'Playfair Display', serif;
+        }
+        /* A subtle animation for cards to fade in */
+        .card-animate {
+            animation: fadeIn 0.5s ease-in-out forwards;
+            opacity: 0;
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-stone-100">
 
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="text-center mb-4">
-            <h2>
-                <i class="fas fa-home text-primary"></i> Your Feed
-            </h2>
-            <p class="text-muted">Discover amazing artwork from talented artisans</p>
+    <!-- Frosted Glass Navigation Bar -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-sm shadow-md">
+        <div class="max-w-5xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <a href="{{ url_for('index') }}" class="font-display text-3xl text-stone-800">
+                   Artket
+                </a>
+                
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-6 text-stone-600">
+                    <a href="{{ url_for('feed') }}" class="hover:text-amber-600 transition-colors text-amber-600"><i class="fas fa-home mr-1"></i> Home</a>
+                    <a href="{{ url_for('marketplace') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-store mr-1"></i> Marketplace</a>
+                    <a href="{{ url_for('discover') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-map mr-1"></i> Discover</a>
+                    <a href="{{ url_for('profile', username=current_user.username) }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-user mr-1"></i> Profile</a>
+                    <a href="{{ url_for('view_cart') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-shopping-cart mr-1"></i> Cart</a>
+                    <a href="{{ url_for('logout') }}" class="hover:text-amber-600 transition-colors"><i class="fas fa-sign-out-alt mr-1"></i> Logout</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button class="text-stone-600 hover:text-amber-600">
+                        <i class="fas fa-bars fa-lg"></i>
+                    </button>
+                </div>
+            </div>
         </div>
-        
-        {% if current_user.role == 'artisan' %}
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5><i class="fas fa-plus-circle text-primary"></i> Share Your Art</h5>
-                <p class="text-muted">Upload a new piece to share with your followers</p>
-                <button class="btn btn-primary" onclick="showCreatePost()">
-                    <i class="fas fa-camera"></i> Create Post
+    </nav>
+
+    <!-- Main Content -->
+    <main class="min-h-screen bg-black/30 pt-8">
+        <div class="max-w-lg mx-auto px-4 space-y-6 pb-12">
+
+            <!-- Create Post Card (for artisans) -->
+            {% if current_user.role == 'artisan' %}
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-5 text-center card-animate">
+                <h5 class="font-display text-2xl text-stone-700">Share Your Latest Masterpiece</h5>
+                <p class="text-stone-500 mt-1 mb-4">Upload a new piece to inspire your followers.</p>
+                <button onclick="showCreatePost()" class="bg-stone-700 text-white font-bold py-2 px-5 rounded-lg shadow-md hover:bg-stone-800 transition-all duration-300 transform hover:scale-105">
+                    <i class="fas fa-camera mr-2"></i> Create Post
                 </button>
             </div>
-        </div>
-        {% endif %}
-        
-        {% if posts.items %}
-            {% for post in posts.items %}
-            <div class="card mb-4 post-card">
-                <div class="card-header bg-white border-0 pb-0">
-                    <div class="d-flex align-items-center">
-                        <div class="avatar-circle me-3">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div>
-                            <h6 class="mb-0">{{ post.author.username }}</h6>
-                            <small class="text-muted">{{ post.created_at.strftime('%b %d, %Y') }}</small>
-                        </div>
-                        {% if current_user.role == 'buyer' %}
-                        <div class="ms-auto">
-                            <button class="btn btn-sm btn-outline-primary" onclick="toggleFollow({{ post.author.id }})">
-                                <i class="fas fa-user-plus"></i> Follow
+            {% endif %}
+
+            <!-- Posts Container -->
+            <div id="postsContainer">
+                {% if posts and posts.items %}
+                    {% for post in posts.items %}
+                    <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden card-animate" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+                        <!-- Post Header -->
+                        <div class="flex items-center p-4">
+                            {% if post.author.profile_image %}
+                                <img src="{{ post.author.profile_image }}" alt="Avatar" class="w-10 h-10 rounded-full object-cover">
+                            {% else %}
+                                <div class="w-10 h-10 rounded-full bg-stone-300 flex items-center justify-center">
+                                    <i class="fas fa-user text-stone-600"></i>
+                                </div>
+                            {% endif %}
+                            <div class="ml-3">
+                                <p class="font-semibold text-stone-800">{{ post.author.username }}</p>
+                                <p class="text-xs text-stone-500">{{ post.created_at.strftime('%b %d, %Y') }}</p>
+                            </div>
+                            {% if current_user.role == 'buyer' and post.author.id != current_user.id and post.author.role == 'artisan' %}
+                            <button id="follow-btn-{{ post.author.id }}" onclick="toggleFollow({{ post.author.id }})" class="ml-auto text-xs font-bold px-3 py-1 rounded-full transition-colors {% if current_user.is_following(post.author) %}bg-green-200 text-green-700 hover:bg-green-300{% else %}bg-stone-200 text-stone-700 hover:bg-stone-300{% endif %}">
+                                {% if current_user.is_following(post.author) %}Following{% else %}Follow{% endif %}
                             </button>
+                            {% endif %}
                         </div>
-                        {% endif %}
+                        <!-- Post Image -->
+                        <img src="{{ post.image_url }}" alt="Artwork" class="w-full h-auto">
+                        <!-- Post Actions & Caption -->
+                        <div class="p-4">
+                            <div class="flex items-center space-x-4 mb-3 text-xl text-stone-600">
+                                <button id="like-btn-{{ post.id }}" onclick="toggleLike({{ post.id }})" class="hover:text-red-500 transition-colors">
+                                    {% if post.is_liked_by(current_user) %}
+                                        <i class="fas fa-heart text-red-500"></i>
+                                    {% else %}
+                                        <i class="far fa-heart"></i>
+                                    {% endif %}
+                                </button>
+                                <button onclick="showComments({{ post.id }})" class="hover:text-amber-600 transition-colors">
+                                    <i class="far fa-comment"></i>
+                                </button>
+                                <button class="hover:text-amber-600 transition-colors">
+                                    <i class="far fa-share-square"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Like and Comment Counts -->
+                            <div class="text-sm text-stone-600 mb-2">
+                                <span id="like-count-{{ post.id }}" class="font-semibold">{{ post.likes_count() }} likes</span>
+                                {% if post.comments_count() > 0 %}
+                                    <span class="ml-3">{{ post.comments_count() }} comments</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if post.caption %}
+                            <p class="text-sm text-stone-800">
+                                <span class="font-semibold">{{ post.author.username }}</span> {{ post.caption }}
+                            </p>
+                            {% endif %}
+                            {% if post.hashtags %}
+                            <p class="text-sm text-amber-700 mt-1">{{ post.hashtags }}</p>
+                            {% endif %}
+                            
+                            {% if post.comments_count() > 0 %}
+                            <p id="view-comments-{{ post.id }}" class="text-xs text-stone-500 mt-2 cursor-pointer hover:underline" onclick="showComments({{ post.id }})">View all {{ post.comments_count() }} comments</p>
+                            {% endif %}
+                        </div>
                     </div>
+                    {% endfor %}
+                {% else %}
+                <!-- Empty Feed Message -->
+                <div class="text-center py-10 card-animate">
+                    <i class="fas fa-images fa-3x text-white/50 mb-3"></i>
+                    <h4 class="text-white font-semibold text-lg">No posts yet</h4>
+                    <p class="text-white/70">Start following artisans to see their amazing work!</p>
                 </div>
-                
-                <div class="post-image">
-                    <img src="{{ post.image_url }}" class="card-img" alt="Post image">
-                </div>
-                
-                <div class="card-body">
-                    <div class="d-flex mb-3">
-                        <button class="btn btn-link p-0 me-3 text-decoration-none" onclick="toggleLike({{ post.id }})">
-                            <i class="far fa-heart fa-lg"></i>
-                        </button>
-                        <button class="btn btn-link p-0 me-3 text-decoration-none" onclick="showComments({{ post.id }})">
-                            <i class="far fa-comment fa-lg"></i>
-                        </button>
-                        <button class="btn btn-link p-0 text-decoration-none">
-                            <i class="far fa-share-square fa-lg"></i>
-                        </button>
-                    </div>
-                    
-                    {% if post.caption %}
-                    <p class="mb-2">
-                        <strong>{{ post.author.username }}</strong> {{ post.caption }}
-                    </p>
-                    {% endif %}
-                    
-                    {% if post.hashtags %}
-                    <p class="text-primary mb-2">{{ post.hashtags }}</p>
-                    {% endif %}
-                    
-                    <small class="text-muted">View all comments</small>
-                </div>
+                {% endif %}
             </div>
-            {% endfor %}
             
-            <!-- Pagination -->
-            <div class="d-flex justify-content-center">
-                {% if posts.has_prev %}
-                    <a href="{{ url_for('feed', page=posts.prev_num) }}" class="btn btn-outline-primary me-2">Previous</a>
-                {% endif %}
-                {% if posts.has_next %}
-                    <a href="{{ url_for('feed', page=posts.next_num) }}" class="btn btn-outline-primary">Next</a>
-                {% endif %}
-            </div %}
-        {% else %}
-            <div class="text-center py-5">
-                <i class="fas fa-images fa-3x text-muted mb-3"></i>
-                <h4>No posts yet</h4>
-                <p class="text-muted">Start following artisans to see their amazing work here!</p>
-            </div>
-        {% endif %}
+        </div>
+    </main>
+
+    <!-- Create Post Modal -->
+    <div id="createPostModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <h3 class="font-display text-2xl mb-4">Create New Post</h3>
+            <form id="createPostForm" enctype="multipart/form-data">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-stone-700 mb-2">Upload Image</label>
+                    <input type="file" name="image" accept="image/*" required class="w-full p-2 border border-stone-300 rounded-lg">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-stone-700 mb-2">Caption</label>
+                    <textarea name="caption" rows="3" class="w-full p-2 border border-stone-300 rounded-lg" placeholder="Tell us about your artwork..."></textarea>
+                </div>
+                <div class="mb-4">
+                    <button type="button" onclick="generateAIContent()" class="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors">
+                        <i class="fas fa-magic mr-2"></i> Generate AI Caption
+                    </button>
+                </div>
+                <div class="flex space-x-3">
+                    <button type="submit" class="flex-1 bg-stone-700 text-white py-2 rounded-lg hover:bg-stone-800 transition-colors">
+                        <i class="fas fa-plus mr-2"></i> Post
+                    </button>
+                    <button type="button" onclick="hideCreatePost()" class="flex-1 bg-stone-200 text-stone-700 py-2 rounded-lg hover:bg-stone-300 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
-{% endblock %}
+
+    <!-- Comments Modal -->
+    <div id="commentsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col">
+            <!-- Modal Header -->
+            <div class="p-4 border-b border-stone-200 flex items-center justify-between">
+                <h3 class="font-display text-xl">Comments</h3>
+                <button onclick="hideComments()" class="text-stone-400 hover:text-stone-600">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Comments List -->
+            <div id="commentsList" class="flex-1 overflow-y-auto p-4 space-y-3">
+                <!-- Comments will be loaded here -->
+            </div>
+            
+            <!-- Add Comment Form -->
+            <div class="p-4 border-t border-stone-200">
+                <form id="addCommentForm" class="flex space-x-2">
+                    <input type="hidden" id="commentPostId" value="">
+                    <input type="text" id="commentInput" placeholder="Add a comment..." class="flex-1 p-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <button type="submit" class="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the original JavaScript functionality -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        // Show create post modal
+        function showCreatePost() {
+            document.getElementById('createPostModal').classList.remove('hidden');
+            document.getElementById('createPostModal').classList.add('flex');
+        }
+
+        // Hide create post modal
+        function hideCreatePost() {
+            document.getElementById('createPostModal').classList.add('hidden');
+            document.getElementById('createPostModal').classList.remove('flex');
+        }
+
+        // Toggle like functionality
+        async function toggleLike(postId) {
+            try {
+                const response = await fetch(`/api/posts/${postId}/like`, { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Refresh the page to update like status
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error('Error toggling like:', error);
+            }
+        }
+
+        // Toggle follow functionality
+        async function toggleFollow(userId) {
+            try {
+                const response = await fetch(`/api/follow/${userId}`, { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update follow button
+                    const followBtn = document.getElementById(`follow-btn-${userId}`);
+                    
+                    if (result.following) {
+                        followBtn.textContent = 'Following';
+                        followBtn.className = followBtn.className.replace('bg-stone-200 text-stone-700 hover:bg-stone-300', 'bg-green-200 text-green-700 hover:bg-green-300');
+                    } else {
+                        followBtn.textContent = 'Follow';
+                        followBtn.className = followBtn.className.replace('bg-green-200 text-green-700 hover:bg-green-300', 'bg-stone-200 text-stone-700 hover:bg-stone-300');
+                    }
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error following user:', error);
+                alert('Error following user');
+            }
+        }
+
+        // Create post functionality
+        document.getElementById('createPostForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch('/api/posts', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    hideCreatePost();
+                    this.reset();
+                    window.location.reload(); // Reload to show new post
+                } else {
+                    alert('Error creating post: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error creating post:', error);
+                alert('Error creating post. Please try again.');
+            }
+        });
+
+        // Generate AI content
+        async function generateAIContent() {
+            const imageInput = document.querySelector('input[name="image"]');
+            
+            if (!imageInput.files[0]) {
+                alert('Please select an image first');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('image', imageInput.files[0]);
+            
+            try {
+                const response = await fetch('/api/ai/generate-caption', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.querySelector('textarea[name="caption"]').value = 
+                        `${result.caption}\n\n${result.hashtags}`;
+                } else {
+                    alert('Error generating AI content: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error generating AI content:', error);
+                alert('Error generating AI content. Please try again.');
+            }
+        }
+
+        // Show comments functionality
+        async function showComments(postId) {
+            document.getElementById('commentPostId').value = postId;
+            document.getElementById('commentsModal').classList.remove('hidden');
+            document.getElementById('commentsModal').classList.add('flex');
+            
+            // Load existing comments
+            try {
+                const response = await fetch(`/api/posts/${postId}/comments`);
+                const data = await response.json();
+                const comments = data.comments || [];
+                
+                const commentsList = document.getElementById('commentsList');
+                commentsList.innerHTML = '';
+                
+                if (comments.length === 0) {
+                    commentsList.innerHTML = '<p class="text-stone-500 text-center">No comments yet. Be the first to comment!</p>';
+                } else {
+                    comments.forEach(comment => {
+                        const commentDiv = document.createElement('div');
+                        commentDiv.className = 'flex space-x-3';
+                        commentDiv.innerHTML = `
+                            <div class="w-8 h-8 bg-stone-300 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-stone-500 text-xs"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="bg-stone-100 rounded-lg p-3">
+                                    <p class="font-semibold text-sm">${comment.username}</p>
+                                    <p class="text-sm">${comment.content}</p>
+                                </div>
+                                <p class="text-xs text-stone-500 mt-1">${new Date(comment.created_at).toLocaleDateString()}</p>
+                            </div>
+                        `;
+                        commentsList.appendChild(commentDiv);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading comments:', error);
+                document.getElementById('commentsList').innerHTML = '<p class="text-red-500 text-center">Error loading comments</p>';
+            }
+        }
+
+        // Hide comments modal
+        function hideComments() {
+            document.getElementById('commentsModal').classList.add('hidden');
+            document.getElementById('commentsModal').classList.remove('flex');
+        }
+
+        // Add comment functionality
+        document.getElementById('addCommentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const postId = document.getElementById('commentPostId').value;
+            const content = document.getElementById('commentInput').value.trim();
+            
+            if (!content) {
+                alert('Please enter a comment');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/posts/${postId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ content: content })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Clear the input
+                    document.getElementById('commentInput').value = '';
+                    
+                    // Reload comments
+                    showComments(postId);
+                    
+                    // Update comment count in main feed
+                    location.reload();
+                } else {
+                    alert('Error adding comment: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error adding comment:', error);
+                alert('Error adding comment. Please try again.');
+            }
+        });
+    </script>
+
+</body>
+</html>

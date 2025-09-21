@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artket: Explore Indian Art</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Lora', serif;
+            background-color: #FFFBF5; /* A warm, paper-like off-white */
+            overflow: hidden; /* Prevent body scroll */
+        }
+        .header-font {
+            font-family: 'Playfair Display', serif;
+        }
+        /* Custom styles for the SVG map */
+        .india-map .state {
+            fill: #EAE2D9; /* A light earthy tone */
+            stroke: #FFFBF5; /* Match background for a clean separation */
+            stroke-width: 2;
+            transition: fill 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+        }
+        .india-map .state:hover, .india-map .state.active {
+            fill: #C36A43; /* Terracotta hover color */
+            transform: scale(1.03);
+            stroke: #8E4B2E; 
+        }
+        .india-map text {
+            font-size: 11px;
+            fill: #ffffff;
+            font-weight: 600;
+            pointer-events: none; 
+            text-shadow: 0 0 5px rgba(0,0,0,1);
+            text-anchor: middle; 
+        }
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #F3EDE7;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #D1C3B6;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #B9A99A;
+        }
+
+        /* Modal Styles */
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+            background-color: #FFFBF5;
+            border: 1px solid #EAE2D9;
+        }
+        .prose {
+            color: #4B423A;
+        }
+        .prose strong {
+            color: #8E4B2E;
+        }
+
+        /* Image Carousel Styles */
+        .carousel-slide {
+            display: none;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .carousel-slide.active {
+            display: block;
+        }
+        .carousel-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255, 251, 245, 0.7);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .carousel-button:hover {
+            background-color: rgba(255, 251, 245, 1);
+        }
+        .carousel-button.prev {
+            left: 10px;
+        }
+        .carousel-button.next {
+            right: 10px;
+        }
+
+        /* Loading Spinner */
+        .loader {
+            border: 4px solid #F3EDE7;
+            border-radius: 50%;
+            border-top: 4px solid #C36A43;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Navigation Styles */
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-amber-50 text-gray-800">
+
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-sm shadow-md border-b border-amber-200">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <a href="{{ url_for('index') }}" class="header-font text-3xl text-amber-900">
+                   Artket
+                </a>
+                
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-6 text-amber-800">
+                    <a href="{{ url_for('feed') }}" class="nav-link hover:text-amber-600 transition-colors">
+                        <i class="fas fa-home mr-1"></i> Home
+                    </a>
+                    <a href="{{ url_for('marketplace') }}" class="nav-link hover:text-amber-600 transition-colors">
+                        <i class="fas fa-store mr-1"></i> Marketplace
+                    </a>
+                    <a href="{{ url_for('discover') }}" class="nav-link hover:text-amber-600 transition-colors text-amber-600 font-semibold">
+                        <i class="fas fa-map mr-1"></i> Discover
+                    </a>
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('profile', username=current_user.username) }}" class="nav-link hover:text-amber-600 transition-colors">
+                            <i class="fas fa-user mr-1"></i> Profile
+                        </a>
+                        <a href="{{ url_for('view_cart') }}" class="nav-link hover:text-amber-600 transition-colors">
+                            <i class="fas fa-shopping-cart mr-1"></i> Cart
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="nav-link hover:text-amber-600 transition-colors">
+                            <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="nav-link hover:text-amber-600 transition-colors">
+                            <i class="fas fa-sign-in-alt mr-1"></i> Login
+                        </a>
+                        <a href="{{ url_for('register') }}" class="nav-link hover:text-amber-600 transition-colors">
+                            <i class="fas fa-user-plus mr-1"></i> Register
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button class="text-amber-800 hover:text-amber-600">
+                        <i class="fas fa-bars fa-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex h-screen w-full flex-col">
+        <!-- Header -->
+        <header class="bg-white/80 backdrop-blur-sm shadow-md p-4 z-10 border-b border-amber-200">
+            <h1 class="text-4xl font-bold text-center header-font text-amber-900">Discover India's Artistic Heritage</h1>
+            <p class="text-center text-amber-800/80 mt-1">Explore traditional art forms from every corner of India.</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex flex-1 overflow-hidden">
+            
+            <!-- Left Column: States List -->
+            <aside id="states-list-container" class="w-1/4 lg:w-1/5 h-full overflow-y-auto p-4 bg-amber-50/50 border-r border-amber-200/60 custom-scrollbar">
+                <h2 class="text-xl font-bold mb-4 sticky top-0 bg-amber-50/80 backdrop-blur-sm py-2 text-amber-900">States & Union Territories</h2>
+                <ul id="states-list" class="space-y-2">
+                    <!-- States will be populated by JavaScript -->
+                </ul>
+            </aside>
+
+            <!-- Center Column: India Map -->
+            <section class="flex-1 flex items-center justify-center p-2 md:p-4 h-full">
+                <!-- SVG Map of India - New, simplified polygonal version -->
+                 <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 800 900"
+                    id="india-map-svg"
+                    class="india-map w-full h-full object-contain">
+                    <g>
+                        <!-- States Paths -->
+                        <path id="IN-JK" class="state" d="m326.3 11.5l-62.8 28.3l-20.9 22.8l-18 42.4l7.1 27.2l39 49.6l31.1 5.9l46.1-22.1l20.2-22.1l40.4-44l-11.3-43.3l-70.8-44.4z"/>
+                        <path id="IN-HP" class="state" d="m365.3 126.7l-3.5 35.8l-31.1-6l-39-49.6l21-31.2l49.9 14.3l3.5 12.4z"/>
+                        <path id="IN-PB" class="state" d="m319.8 156.9l-19.1 40.8l20.2 12.7l31.1-5.9l3.5-35.8l-35.7-12.7z"/>
+                        <path id="IN-UT" class="state" d="m368.9 126.7l50.6 15l17.7 41.7l-41.7 19.1l-24-38.3z"/>
+                        <path id="IN-HR" class="state" d="m321.6 197.7l20.2 12.7l35.7-12.7l22.1 40l-28.3 12.7l-49-14.1z"/>
+                        <path id="IN-RJ" class="state" d="m157.1 229.4l142.3-31.8l20.2 48.2l-37.5 125.9l-132.8-22.1l-24.8-121.7z"/>
+                        <path id="IN-GJ" class="state" d="m132.3 350.5l45.9 98.4l69.3-15.6l-37.5-125.9l-77.7-27.1z"/>
+                        <path id="IN-MP" class="state" d="m319.8 282.3l128.8-15l37.5 125.9l-81.4 53.6l-111.9-22.1z"/>
+                        <path id="IN-UP" class="state" d="m496.5 205.6l54.3 35.3l-15 119.3l-128.8 15l48.2-132.8z"/>
+                        <path id="IN-BR" class="state" d="m550.8 240.9l75.2 24l-3.5 90.9l-85.7-20.6z"/>
+                        <path id="IN-MH" class="state" d="m247.5 370.3l72.9 14.3l37.5-125.9l-111.9 22.1z"/>
+                        <path id="IN-CT" class="state" d="m448.6 345.9l81.4-53.6l54.3 64.2l-91.6 44l-44.1-54.6z"/>
+                        <path id="IN-OR" class="state" d="m530 399.5l91.6-44l19.1 77.7l-94.4 35.8z"/>
+                        <path id="IN-JH" class="state" d="m547.3 335.3l85.7 20.6l-20.9 66.7l-91.6-44z"/>
+                        <path id="IN-WB" class="state" d="m626.5 355.8l82.8 19.1l-11.3 125.9l-78.5-55.3z"/>
+                        <path id="IN-SK" class="state" d="m626.5 264.9l19.1 35.8l-37.5-12.7z"/>
+                        <path id="IN-AS" class="state" d="m690.3 255.8l105.7 34.6l-31.1 57.1l-105.7-27.2z"/>
+                        <path id="IN-AR" class="state" d="m719.6 183.8l119.3 44l-4.2 60.6l-105.7-34.6z"/>
+                        <path id="IN-NL" class="state" d="m795.3 290.4l50.6 12.7l-12.7 35.8l-42.4-11.3z"/>
+                        <path id="IN-MN" class="state" d="m833.1 326.2l28.3 48.2l-30.4 17.7l-15-40.8z"/>
+                        <path id="IN-MZ" class="state" d="m831.3 374.4l24 46.6l-35.8 12.7l-12.7-44.4z"/>
+                        <path id="IN-TR" class="state" d="m791.8 387.1l39.5-12.7l-7.1 48.2l-35.8-12.7z"/>
+                        <path id="IN-ML" class="state" d="m755.4 323.7l39.5 31.8l-35.8 28.3l-28.3-40.8z"/>
+                        <path id="IN-TG" class="state" d="m405.9 445.8l81.4-53.6l59.8 44l-65.7 60.6z"/>
+                        <path id="IN-AP" class="state" d="m405.9 445.8l65.7-60.6l105.7-22.1l-12.7 109.4l-118.6 31.8z"/>
+                        <path id="IN-KA" class="state" d="m317.1 461.4l88.8-15.6l-31.8 132.8l-127.3-7.1z"/>
+                        <path id="IN-GA" class="state" d="m306.5 562.4l10.6-1.4l-0.7 14.1l-12.7 2.1z"/>
+                        <path id="IN-KL" class="state" d="m336.4 690.5l42.4-102.3l20.2 19.1l-24 90.9z"/>
+                        <path id="IN-TN" class="state" d="m356.6 709.6l24-90.9l99.5-35.8l-15 88.1l-108.5 38.6z"/>
+                        <path id="IN-DL" class="state" d="m356 241 l 10 0 l 0 10 l -10 0 z"/>
+
+                        <!-- State Labels -->
+                        <text x="300" y="80">J&K</text><text x="350" y="145">HP</text><text x="300" y="195">PB</text><text x="400" y="180">UK</text><text x="355" y="242">HR</text><text x="361" y="255">DL</text><text x="210" y="280">RJ</text><text x="525" y="280">UP</text><text x="580" y="280">BR</text><text x="635" y="275">SK</text><text x="770" y="220">AR</text><text x="825" y="325">NL</text><text x="850" y="360">MN</text><text x="830" y="420">MZ</text><text x="790" y="420">TR</text><text x="760" y="350">ML</text><text x="740" y="300">AS</text><text x="650" y="450">WB</text><text x="580" y="360">JH</text><text x="600" y="450">OR</text><text x="520" y="420">CT</text><text x="370" y="380">MP</text><text x="180" y="400">GJ</text><text x="320" y="490">MH</text><text x="305" y="570">GA</text><text x="350" y="550">KA</text><text x="500" y="550">AP</text><text x="450" y="480">TG</text><text x="350" y="650">KL</text><text x="430" y="680">TN</text>
+                    </g>
+                </svg>
+            </section>
+
+            <!-- Right Column: Art Forms -->
+            <aside class="w-1/4 lg:w-1/5 h-full flex flex-col p-4 bg-amber-50/50 border-l border-amber-200/60 custom-scrollbar">
+                 <h2 id="art-form-title" class="text-xl font-bold mb-4 sticky top-0 bg-amber-50/80 backdrop-blur-sm py-2 text-amber-900 whitespace-nowrap overflow-hidden text-ellipsis">Art Forms</h2>
+                <div id="art-forms-container" class="space-y-4 overflow-y-auto custom-scrollbar flex-1">
+                    <p class="text-gray-500">Select a state to see its artistic heritage.</p>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Gemini API Modal -->
+    <div id="gemini-modal" class="modal fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none">
+        <div class="modal-content rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transform scale-95">
+            <div class="flex justify-between items-center p-4 border-b border-amber-200">
+                <h3 id="gemini-modal-title" class="text-2xl font-bold header-font text-amber-900">AI-Generated Content</h3>
+                <button data-close-button class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto custom-scrollbar">
+                <div class="loader-container flex justify-center items-center h-48">
+                    <div class="loader"></div>
+                </div>
+                <div id="gemini-modal-text-content" class="prose max-w-none"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Product/Enquiry Modal -->
+    <div id="product-modal" class="modal fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none">
+        <div class="modal-content rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform scale-95">
+             <div class="flex justify-between items-center p-4 border-b border-amber-200">
+                <h3 id="product-modal-title" class="text-2xl font-bold header-font text-amber-900">Product Details</h3>
+                <button data-close-button class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+            </div>
+            <div class="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-y-auto custom-scrollbar">
+                <!-- Left side: Image Carousel -->
+                <div class="w-full md:w-1/2 relative">
+                     <div id="product-image-carousel" class="relative w-full h-96 rounded-lg overflow-hidden shadow-lg">
+                         <!-- Images will be injected here -->
+                     </div>
+                     <button id="prev-btn" class="carousel-button prev">
+                        <svg class="w-6 h-6 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                     </button>
+                     <button id="next-btn" class="carousel-button next">
+                        <svg class="w-6 h-6 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                     </button>
+                </div>
+                <!-- Right side: Details & Form -->
+                <div class="w-full md:w-1/2 flex flex-col">
+                    <h2 id="product-name" class="text-3xl header-font text-amber-900">Art Form Name</h2>
+                    <p id="product-artisan" class="text-amber-800/80 mt-1">from Artisan in [State]</p>
+                    <p id="product-desc" class="mt-4 text-amber-800/90 flex-grow">A detailed description of the art form, its materials, and cultural significance goes here.</p>
+                    <div class="mt-6 bg-amber-100/50 p-4 rounded-lg border border-amber-200/80">
+                         <h4 class="font-bold text-lg text-amber-900">Enquire Now</h4>
+                         <form id="enquiry-form" class="mt-2 space-y-3">
+                             <div>
+                                 <label for="name" class="text-sm font-medium text-amber-800">Your Name</label>
+                                 <input type="text" id="name" required class="w-full p-2 mt-1 border border-amber-300 rounded-md focus:ring-amber-500 focus:border-amber-500 bg-white/70">
+                             </div>
+                              <div>
+                                 <label for="email" class="text-sm font-medium text-amber-800">Your Email</label>
+                                 <input type="email" id="email" required class="w-full p-2 mt-1 border border-amber-300 rounded-md focus:ring-amber-500 focus:border-amber-500 bg-white/70">
+                             </div>
+                             <div>
+                                 <label for="message" class="text-sm font-medium text-amber-800">Message (e.g., quantity, details)</label>
+                                 <textarea id="message" rows="3" required class="w-full p-2 mt-1 border border-amber-300 rounded-md focus:ring-amber-500 focus:border-amber-500 bg-white/70"></textarea>
+                             </div>
+                             <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-md">Send Enquiry</button>
+                         </form>
+                    </div>
+                     <button id="contact-wholesaler-btn" class="mt-4 w-full bg-gradient-to-r from-amber-600 to-red-600 text-white font-bold py-2.5 px-4 rounded-lg hover:shadow-lg transition-all duration-300 shadow-md transform hover:-translate-y-0.5">Contact Wholesaler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Data for states and their art forms with multiple REAL images
+            const artisticData = {
+                "IN-AP": { 
+                    name: "Andhra Pradesh", 
+                    arts: [
+                        { name: "Kalamkari Paintings", desc: "Textile art of hand-painting or block-printing, often depicting epic tales.", images: ["https://i.pinimg.com/originals/0d/1a/c8/0d1ac81a851b9ffbaac2f14333b5c168.jpg", "https://upload.wikimedia.org/wikipedia/commons/2/23/Kalamkari_tree_of_life.jpg"] },
+                        { name: "Kondapalli Toys", desc: "Toys carved from soft wood and painted with vibrant natural dyes.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Kondapalli_Toys_in_a_shop.jpg/1280px-Kondapalli_Toys_in_a_shop.jpg", "https://www.visakhapatnamtourism.com/images/places-to-visit/header/kondapalli-toys-visakhapatnam-tourism-entry-fee-timings-holidays-reviews-header.jpg"] },
+                    ]
+                },
+                "IN-AR": { name: "Arunachal Pradesh", arts: [{ name: "Bamboo & Cane Crafts", desc: "Intricate items made from local bamboo and cane, reflecting tribal culture.", images: ["https://www.tourmyindia.com/states/arunachalpradesh/images/bamboo-cane-products1.jpg"] }] },
+                "IN-AS": { name: "Assam", arts: [{ name: "Muga Silk Weaving", desc: "Known for its durable, natural golden sheen, woven into traditional garments.", images: ["https://upload.wikimedia.org/wikipedia/commons/d/dd/Muga_silk_mekhela_chadar.jpg"] }] },
+                "IN-BR": { name: "Bihar", arts: [{ name: "Madhubani Painting", desc: "Characterized by complex geometrical patterns and vibrant colors.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Madhubani_paintings.jpg/1024px-Madhubani_paintings.jpg"] }] },
+                "IN-CT": { name: "Chhattisgarh", arts: [{ name: "Dhokra Art", desc: "Bell metal craft using the lost-wax casting technique, known for its rustic charm.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Bastar_Dhokra_Art_at_Crafts_Museum.jpg/1280px-Bastar_Dhokra_Art_at_Crafts_Museum.jpg"] }] },
+                "IN-GA": { name: "Goa", arts: [{ name: "Azulejos Tiles", desc: "Hand-painted tin-glazed ceramic tilework, a remnant of Portuguese influence.", images: ["https://www.itsgoa.com/wp-content/uploads/2016/01/800px-Azulejos_in_Panjim.jpg"] }] },
+                "IN-GJ": { name: "Gujarat", arts: [{ name: "Bandhani (Tie-Dye)", desc: "A traditional tie-dye technique resulting in intricate patterns on textiles.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Bandhani_Saree.jpg/1024px-Bandhani_Saree.jpg"] }] },
+                "IN-HR": { name: "Haryana", arts: [{ name: "Panja Durries", desc: "Woven rugs with traditional geometric patterns, a staple of local handloom.", images: ["https://www.design-dekho.com/wp-content/uploads/2021/07/Panja-Durries-of-Haryana.jpg"] }] },
+                "IN-HP": { name: "Himachal Pradesh", arts: [{ name: "Kangra Paintings", desc: "Delicate and lyrical miniature paintings with a focus on naturalism.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Radha_and_Krishna_in_Discussion.jpg/800px-Radha_and_Krishna_in_Discussion.jpg"] }] },
+                "IN-JH": { name: "Jharkhand", arts: [{ name: "Sohrai & Khovar Art", desc: "Mural art practiced by tribal women during harvest and wedding seasons.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Sohrai_Art_on_wall_of_a_house_in_Hazaribagh.jpg/1280px-Sohrai_Art_on_wall_of_a_house_in_Hazaribagh.jpg"] }] },
+                "IN-KA": { 
+                    name: "Karnataka", 
+                    arts: [
+                        { name: "Mysore Paintings", desc: "Classical paintings known for their elegance, muted colours, and attention to detail.", images: ["https://upload.wikimedia.org/wikipedia/commons/3/3f/Mysore_painting.jpg"] },
+                        { name: "Channapatna Toys", desc: "Colourful wooden toys and dolls finished with eco-friendly lacquer.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Channapatna_Toys_-_2.JPG/1280px-Channapatna_Toys_-_2.JPG"] },
+                        { name: "Bidriware", desc: "A metal handicraft with damascened work in silver inlay on a blackened alloy.", images: ["https://upload.wikimedia.org/wikipedia/commons/a/a2/Bidriware_at_Salar_Jung_Museum.jpg"] }
+                    ] 
+                },
+                "IN-KL": { name: "Kerala", arts: [{ name: "Aranmula Kannadi", desc: "Handmade metal-alloy mirrors, a well-kept secret of a single family.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Aranmula_kannadi_IMG_5352.jpg/800px-Aranmula_kannadi_IMG_5352.jpg"] }] },
+                "IN-MP": { name: "Madhya Pradesh", arts: [{ name: "Gond Painting", desc: "Vibrant art by the Gond tribe, filled with dots and dashes depicting nature.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Gond_painting_of_birds_on_a_tree.jpg/800px-Gond_painting_of_birds_on_a_tree.jpg"] }] },
+                "IN-MH": { name: "Maharashtra", arts: [{ name: "Warli Painting", desc: "Tribal art using basic geometric shapes to depict scenes of daily life.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Warli_painting_on_a_wall.jpg/1280px-Warli_painting_on_a_wall.jpg"] }] },
+                "IN-MN": { name: "Manipur", arts: [{ name: "Kauna Craft", desc: "Crafts made from a type of reed, woven into mats, bags, and furniture.", images: ["https://www.digitalunlocked.com/wp-content/uploads/2021/08/Kauna-Craft.jpg"] }] },
+                "IN-ML": { name: "Meghalaya", arts: [{ name: "Tlieng Weaving", desc: "A unique form of shawls and textiles woven by the Khasi tribes.", images: ["https://meghalayatimes.info/wp-content/uploads/2021/08/Eri-Ryndia.jpg"] }] },
+                "IN-MZ": { name: "Mizoram", arts: [{ name: "Puan Weaving", desc: "Intricately designed textiles that are a significant part of Mizo tradition.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Mizo_Puan.jpg/800px-Mizo_Puan.jpg"] }] },
+                "IN-NL": { name: "Nagaland", arts: [{ name: "Naga Shawls", desc: "Distinctive shawls woven with bold patterns that signify a person's social standing.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Naga_shawl%2C_Nagaland%2C_India%2C_mid_20th_century%2C_cotton%2C_plain_weave_with_embroidery_-_Textile_Museum_of_Canada_-_DSC09292.JPG/800px-Naga_shawl%2C_Nagaland%2C_India%2C_mid_20th_century%2C_cotton%2C_plain_weave_with_embroidery_-_Textile_Museum_of_Canada_-_DSC09292.JPG"] }] },
+                "IN-OR": { name: "Odisha", arts: [{ name: "Pattachitra", desc: "Traditional cloth-based scroll painting, known for its intricate details.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Pattachitra_Painting%2C_Raghurajpur%2C_Odisha.jpg/1024px-Pattachitra_Painting%2C_Raghurajpur%2C_Odisha.jpg"] }] },
+                "IN-PB": { name: "Punjab", arts: [{ name: "Phulkari Embroidery", desc: "A rural tradition of floral embroidery, literally meaning 'flower work'.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Phulkari_embroidery_from_Punjab.jpg/1024px-Phulkari_embroidery_from_Punjab.jpg"] }] },
+                "IN-RJ": { 
+                    name: "Rajasthan", 
+                    arts: [
+                        { name: "Blue Pottery", desc: "A Turko-Persian art form, using a distinctive blue dye, made without clay.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Blue_pottery_of_Jaipur_02.jpg/1024px-Blue_pottery_of_Jaipur_02.jpg"] },
+                        { name: "Meenakari Jewellery", desc: "The art of coloring and ornamenting the surface of metals by fusing brilliant colors.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Meenakari_necklace.jpg/1280px-Meenakari_necklace.jpg"] },
+                    ] 
+                },
+                "IN-SK": { name: "Sikkim", arts: [{ name: "Thangka Painting", desc: "A Tibetan Buddhist painting on cotton or silk, usually depicting a deity.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Manjushri_Thangka.jpg/800px-Manjushri_Thangka.jpg"] }] },
+                "IN-TN": { 
+                    name: "Tamil Nadu", 
+                    arts: [
+                        { name: "Kanchipuram Sarees", desc: "Famous silk sarees known for their wide contrast borders and traditional motifs.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/KANCHIPURAM_SILK_SAREE.jpg/1024px-KANCHIPURAM_SILK_SAREE.jpg"] },
+                        { name: "Tanjore Paintings", desc: "Classical panel paintings characterized by rich colors, gold foil, and glass beads.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Tanjore_painting.jpg/800px-Tanjore_painting.jpg"] },
+                    ]
+                },
+                "IN-TG": { name: "Telangana", arts: [{ name: "Pochampally Ikat", desc: "Textiles made by a resist dyeing process, known for geometric patterns.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Pochampally_saree.jpg/1280px-Pochampally_saree.jpg"] }] },
+                "IN-TR": { name: "Tripura", arts: [{ name: "Bamboo Handicrafts", desc: "Exquisite items crafted from bamboo, a primary resource of the state.", images: ["https://tripuratourism.gov.in/sites/default/files/styles/adventure_tourism_870x500/public/bamboo-and-cane-handicrafts.jpg.webp?itok=bYwL8X9s"] }] },
+                "IN-UP": { name: "Uttar Pradesh", arts: [{ name: "Chikankari Embroidery", desc: "A delicate and artfully done hand embroidery from Lucknow.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Chikankari_embroidery_detail.jpg/1024px-Chikankari_embroidery_detail.jpg"] }] },
+                "IN-UT": { name: "Uttarakhand", arts: [{ name: "Aipan Art", desc: "A ritualistic folk art made on floors and walls with red and white pigments.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Aipan_art_form_of_Kumaon%2C_Uttarakhand.jpg/1280px-Aipan_art_form_of_Kumaon%2C_Uttarakhand.jpg"] }] },
+                "IN-WB": { name: "West Bengal", arts: [{ name: "Kantha Embroidery", desc: "A type of embroidery craft in eastern South Asia, particularly in Bengal.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Kantha_Embroidery_at_Crafts_Museum.jpg/1280px-Kantha_Embroidery_at_Crafts_Museum.jpg"] }] },
+                "IN-JK": { name: "Jammu & Kashmir", arts: [{ name: "Pashmina Shawls", desc: "Fine cashmere wool shawls known for their softness and warmth.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Kashmiri_Pashmina_Shawl.jpg/1024px-Kashmiri_Pashmina_Shawl.jpg"] }]},
+                "IN-DL": { name: "Delhi", arts: [{ name: "Zardozi Embroidery", desc: "Elaborate metal embroidery using gold and silver threads.", images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Zardozi_work_on_velvet.jpg/1280px-Zardozi_work_on_velvet.jpg"] }]}
+            };
+            
+            // --- UI Elements ---
+            const statesList = document.getElementById('states-list');
+            const artFormsContainer = document.getElementById('art-forms-container');
+            const artFormTitle = document.getElementById('art-form-title');
+            const mapPaths = document.querySelectorAll('.india-map .state');
+            
+            const geminiModal = document.getElementById('gemini-modal');
+            const geminiModalTitle = document.getElementById('gemini-modal-title');
+            const geminiModalTextContent = document.getElementById('gemini-modal-text-content');
+            const geminiModalLoader = geminiModal.querySelector('.loader-container');
+            
+            const productModal = document.getElementById('product-modal');
+            const productModalTitle = document.getElementById('product-modal-title');
+            const carouselContainer = document.getElementById('product-image-carousel');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const productName = document.getElementById('product-name');
+            const productArtisan = document.getElementById('product-artisan');
+            const productDesc = document.getElementById('product-desc');
+            const enquiryForm = document.getElementById('enquiry-form');
+            const contactWholesalerBtn = document.getElementById('contact-wholesaler-btn');
+
+            const allModals = document.querySelectorAll('.modal');
+            const closeButtons = document.querySelectorAll('[data-close-button]');
+
+            let activeStateId = null;
+            let currentImageIndex = 0;
+            let imageSlides = [];
+            let autoRotateInterval = null;
+
+            // Populate the states list on the left
+            const sortedStateIds = Object.keys(artisticData).sort((a, b) => artisticData[a].name.localeCompare(artisticData[b].name));
+            
+            sortedStateIds.forEach(stateId => {
+                const stateData = artisticData[stateId];
+                const li = document.createElement('li');
+                li.id = `list-${stateId}`;
+                li.dataset.stateId = stateId;
+                li.className = 'p-3 bg-white/60 rounded-lg border border-amber-200/80 shadow-sm cursor-pointer transition-all duration-300 hover:shadow-lg hover:bg-amber-100 hover:border-amber-400 hover:translate-x-1 text-amber-900';
+                li.textContent = stateData.name;
+                statesList.appendChild(li);
+            });
+            
+            const listItems = document.querySelectorAll('#states-list li');
+            
+            function openModal(modalElement) {
+                modalElement.classList.remove('opacity-0', 'pointer-events-none');
+                modalElement.querySelector('.modal-content').classList.remove('scale-95');
+            }
+
+            function closeModal(modalElement) {
+                if (modalElement.id === 'product-modal' && autoRotateInterval) {
+                    clearInterval(autoRotateInterval);
+                    autoRotateInterval = null;
+                }
+                modalElement.classList.add('opacity-0', 'pointer-events-none');
+                modalElement.querySelector('.modal-content').classList.add('scale-95');
+            }
+            
+            // Specific show functions for clarity
+            function showGeminiModal(isLoading = false, title = "Art Details", content = "") {
+                geminiModalTitle.textContent = title;
+                if (isLoading) {
+                    geminiModalLoader.style.display = 'flex';
+                    geminiModalTextContent.style.display = 'none';
+                } else {
+                    geminiModalLoader.style.display = 'none';
+                    geminiModalTextContent.innerHTML = content;
+                    geminiModalTextContent.style.display = 'block';
+                }
+                openModal(geminiModal);
+            }
+
+            function showProductModal(art, stateName) {
+                productName.textContent = art.name;
+                productArtisan.textContent = `from an Artisan in ${stateName}`;
+                productDesc.textContent = art.desc;
+                
+                // Carousel setup
+                carouselContainer.innerHTML = '';
+                imageSlides = art.images.map(src => {
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.className = 'carousel-slide absolute w-full h-full object-cover';
+                    carouselContainer.appendChild(img);
+                    return img;
+                });
+
+                currentImageIndex = 0;
+                showImage(currentImageIndex);
+                startAutoRotate();
+
+                enquiryForm.reset();
+                openModal(productModal);
+            }
+            
+            // Carousel functions
+            function showImage(index) {
+                imageSlides.forEach((slide, i) => {
+                    slide.classList.remove('active', 'opacity-100');
+                    slide.classList.add('opacity-0');
+                    if (i === index) {
+                        slide.classList.add('active', 'opacity-100');
+                    }
+                });
+            }
+
+            function nextImage() {
+                currentImageIndex = (currentImageIndex + 1) % imageSlides.length;
+                showImage(currentImageIndex);
+            }
+
+            function prevImage() {
+                currentImageIndex = (currentImageIndex - 1 + imageSlides.length) % imageSlides.length;
+                showImage(currentImageIndex);
+            }
+            
+            function startAutoRotate() {
+                if(autoRotateInterval) clearInterval(autoRotateInterval);
+                autoRotateInterval = setInterval(nextImage, 3000);
+            }
+
+            // Function to update the right panel with art forms
+            function updateArtForms(stateId) {
+                const stateData = artisticData[stateId];
+                if (!stateData) {
+                    artFormTitle.textContent = "Art Forms";
+                    artFormsContainer.innerHTML = '<p class="text-gray-500">Data not available for this region.</p>';
+                    return;
+                }
+
+                artFormTitle.textContent = `Art Forms of ${stateData.name}`;
+                artFormsContainer.innerHTML = ''; // Clear previous content
+
+                if (stateData.arts && stateData.arts.length > 0) {
+                    stateData.arts.forEach((art, index) => {
+                        const card = document.createElement('div');
+                        card.className = 'art-card bg-white/60 rounded-lg shadow-md overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-xl border border-amber-200/80 cursor-pointer';
+                        card.dataset.stateId = stateId;
+                        card.dataset.artIndex = index;
+                        card.innerHTML = `
+                            <img src="${art.images[0]}" alt="${art.name}" class="w-full h-32 object-cover pointer-events-none">
+                            <div class="p-4">
+                                <h3 class="font-bold text-md text-amber-900">${art.name}</h3>
+                                <p class="text-sm text-amber-800/90 mt-1 line-clamp-2">${art.desc}</p>
+                                <button data-art-name="${art.name}" data-state-name="${stateData.name}" class="tell-me-more-btn mt-3 text-sm text-indigo-700 font-semibold hover:underline pointer-events-auto">Learn More →</button>
+                            </div>
+                        `;
+                        artFormsContainer.appendChild(card);
+                    });
+                } else {
+                    artFormsContainer.innerHTML = '<p class="text-gray-500">No specific art forms listed for this state.</p>';
+                }
+            }
+            
+            // Function to set the active state
+            function setActiveState(stateId) {
+                if (activeStateId === stateId) return; // No change
+
+                mapPaths.forEach(p => p.classList.remove('active'));
+                listItems.forEach(l => l.classList.remove('bg-amber-600', 'text-white', 'shadow-lg', 'border-amber-700'));
+
+                if (stateId && artisticData[stateId]) {
+                    const mapPath = document.getElementById(stateId);
+                    const listItem = document.getElementById(`list-${stateId}`);
+                    
+                    mapPath?.classList.add('active');
+                    listItem?.classList.add('bg-amber-600', 'text-white', 'shadow-lg', 'border-amber-700');
+                    
+                    updateArtForms(stateId);
+                    activeStateId = stateId;
+                } else {
+                    activeStateId = null;
+                }
+            }
+            
+            // --- Event Handlers ---
+            function handleArtDetailRequest(artName, stateName) {
+                const detailedInfo = `
+                    <h2><strong>${artName}</strong> from ${stateName}</h2>
+                    <br>
+                    <p>This traditional art form represents centuries of cultural heritage and skilled craftsmanship passed down through generations.</p>
+                    <br>
+                    <p><strong>Cultural Significance:</strong> Each piece tells a story of the region's history, beliefs, and artistic traditions.</p>
+                    <br>
+                    <p><strong>Techniques:</strong> Master artisans use time-honored methods, often combining natural materials with intricate handwork.</p>
+                    <br>
+                    <p><strong>Modern Relevance:</strong> These art forms continue to thrive today, bridging traditional craftsmanship with contemporary design needs.</p>
+                    <br>
+                    <p>Interested in learning more or purchasing authentic pieces? Use the enquiry form to connect with local artisans!</p>
+                `;
+                showGeminiModal(false, `${artName} - Cultural Heritage`, detailedInfo);
+            }
+
+            // --- Event Listeners ---
+            mapPaths.forEach(path => {
+                path.addEventListener('mouseover', () => setActiveState(path.id));
+                path.addEventListener('click', () => {
+                    showGeminiModal(false, `Welcome to ${artisticData[path.id].name}`, `Discover the rich artistic heritage of ${artisticData[path.id].name}. Explore traditional art forms by selecting from the collection on the right.`);
+                });
+            });
+
+            listItems.forEach(item => {
+                item.addEventListener('mouseover', () => setActiveState(item.dataset.stateId));
+                item.addEventListener('click', (e) => {
+                    const stateId = e.currentTarget.dataset.stateId;
+                    showGeminiModal(false, `Welcome to ${artisticData[stateId].name}`, `Discover the rich artistic heritage of ${artisticData[stateId].name}. Explore traditional art forms by selecting from the collection on the right.`);
+                });
+            });
+
+            artFormsContainer.addEventListener('click', function(e) {
+                const tellMeMoreButton = e.target.closest('.tell-me-more-btn');
+                const artCard = e.target.closest('.art-card');
+
+                if (tellMeMoreButton) {
+                    e.stopPropagation();
+                    const artName = tellMeMoreButton.dataset.artName;
+                    const stateName = tellMeMoreButton.dataset.stateName;
+                    handleArtDetailRequest(artName, stateName);
+                } else if (artCard) {
+                    const stateId = artCard.dataset.stateId;
+                    const artIndex = artCard.dataset.artIndex;
+                    const artData = artisticData[stateId].arts[artIndex];
+                    showProductModal(artData, artisticData[stateId].name);
+                }
+            });
+
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    closeModal(button.closest('.modal'));
+                })
+            })
+
+            allModals.forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeModal(modal);
+                });
+            });
+
+            enquiryForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                closeModal(productModal);
+                setTimeout(() => {
+                    showGeminiModal(false, 'Enquiry Sent!', 'Thank you for your interest in traditional Indian art! Your message has been received and local artisans will connect with you soon.');
+                }, 300); 
+            });
+
+            contactWholesalerBtn.addEventListener('click', () => {
+                closeModal(productModal);
+                setTimeout(() => {
+                    showGeminiModal(false, 'Wholesale Opportunities', 'Connect with our wholesale network to access bulk quantities of authentic Indian handicrafts. Perfect for retailers, exporters, and cultural institutions.');
+                }, 300);
+            });
+            
+            nextBtn.addEventListener('click', () => {
+                nextImage();
+                startAutoRotate();
+            });
+
+            prevBtn.addEventListener('click', () => {
+                prevImage();
+                startAutoRotate();
+            });
+
+            // Set initial state
+            setActiveState('IN-DL');
+        });
+    </script>
+</body>
+</html>
